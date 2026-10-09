@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, ApiRequestError } from "./api";
-import { ArrivalClock } from "./arrival-clock";
+import { ArrivalClock, isArrivalLate } from "./arrival-clock";
 import { useSessionUserId } from "./app-shell";
 
 type HelpView = {
@@ -54,6 +54,7 @@ export function HelpPanel({ clientId }: { clientId: string }) {
   const [sending, setSending] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [showFarewell, setShowFarewell] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     let cancelled = false;
@@ -96,6 +97,12 @@ export function HelpPanel({ clientId }: { clientId: string }) {
     const timer = window.setTimeout(() => setShowFarewell(false), left);
     return () => window.clearTimeout(timer);
   }, [view?.active, view?.finished]);
+
+  useEffect(() => {
+    if (!view?.active || view.active.status !== "helper_on_way") return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [view?.active]);
 
   async function cancelCall() {
     if (!view?.active) return;
@@ -142,7 +149,13 @@ export function HelpPanel({ clientId }: { clientId: string }) {
   }
 
   const active = view.active;
-  const coming = active?.status === "helper_on_way" && active.helperEtaMin && (active.acceptedAt || active.createdAt);
+  const coming = Boolean(
+    active?.status === "helper_on_way" && active.helperEtaMin && (active.acceptedAt || active.createdAt),
+  );
+  const late =
+    coming &&
+    active &&
+    isArrivalLate(active.acceptedAt || active.createdAt, active.helperEtaMin ?? 0, now);
 
   return (
     <main>
@@ -185,6 +198,11 @@ export function HelpPanel({ clientId }: { clientId: string }) {
           <p className="text-2xl font-extrabold leading-snug">{active.helperName ?? "Abistaja"} on teel.</p>
           <p className="text-base font-semibold">Saabumiseni</p>
           <ArrivalClock from={active.acceptedAt || active.createdAt} minutes={active.helperEtaMin ?? 0} />
+          {late ? (
+            <p className="text-xl font-extrabold leading-snug text-[#9f1d1d]">
+              Abistaja hilineb. Kui vajad kiiresti abi, helista 112.
+            </p>
+          ) : null}
           <Call112 />
           {view.canCancel ? (
             <button

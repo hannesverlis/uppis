@@ -10,6 +10,10 @@ function clock(totalSeconds: number) {
   return hours > 0 ? `${hours}:${text}` : text;
 }
 
+export function isArrivalLate(from: string, minutes: number, now = Date.now()) {
+  return now > new Date(from).getTime() + minutes * 60 * 1000;
+}
+
 export function ArrivalClock({ from, minutes }: { from: string; minutes: number }) {
   const [now, setNow] = useState(() => Date.now());
 
@@ -19,11 +23,12 @@ export function ArrivalClock({ from, minutes }: { from: string; minutes: number 
   }, []);
 
   const end = new Date(from).getTime() + minutes * 60 * 1000;
-  const left = Math.max(0, Math.floor((end - now) / 1000));
+  const delta = Math.floor((end - now) / 1000);
+  const late = delta < 0;
 
   return (
-    <p className="text-4xl font-extrabold tabular-nums" aria-live="polite">
-      {clock(left)}
+    <p className={`text-4xl font-extrabold tabular-nums ${late ? "text-[#9f1d1d]" : ""}`} aria-live="polite">
+      {late ? `Hilineb +${clock(-delta)}` : clock(delta)}
     </p>
   );
 }
