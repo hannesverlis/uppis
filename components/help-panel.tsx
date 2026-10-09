@@ -84,7 +84,7 @@ export function HelpPanel({ clientId }: { clientId: string }) {
 
   useEffect(() => {
     const finished = view?.finished;
-    if (!finished || view?.active) {
+    if (!finished || finished.status !== "resolved" || view?.active) {
       setShowFarewell(false);
       return;
     }

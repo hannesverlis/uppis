@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, ApiRequestError } from "./api";
 import { useSessionUserId } from "./app-shell";
-import { formatWhen, outcomeLabel, statusLabel } from "./labels";
+import { formatClock, formatWhen, outcomeLabel, statusLabel } from "./labels";
 
 type Profile = {
   id: string;
@@ -25,6 +25,92 @@ type Profile = {
   };
   incidents: { id: string; createdAt: string; status: string; outcome: string | null; helperName: string | null }[];
 };
+
+type HelpSnapshot = {
+  clientName: string;
+  active: {
+    status: string;
+    createdAt: string;
+    helperName: string | null;
+    helperEtaMin: number | null;
+    acceptedAt: string | null;
+  } | null;
+  finished: { status: string; outcome: string | null } | null;
+};
+
+function bannerText(view: HelpSnapshot): string {
+  const active = view.active;
+  if (active?.status === "open") {
+    return `${view.clientName} kutsus abi kell ${formatClock(active.createdAt)}. Ootame abistajat.`;
+  }
+  if (active?.status === "helper_on_way") {
+    const start = active.acceptedAt ?? active.createdAt;
+    const eta = new Date(new Date(start).getTime() + (active.helperEtaMin ?? 0) * 60_000).toISOString();
+    return `${active.helperName ?? "Abistaja"} on teel, saabub ~${formatClock(eta)}.`;
+  }
+  if (active?.status === "helper_arrived") {
+    return `${active.helperName ?? "Abistaja"} on kohal.`;
+  }
+  if (active?.status === "escalated_112") {
+    return "See võib olla terviseoht.";
+  }
+  if (view.finished?.status === "resolved" || view.finished?.status === "cancelled") {
+    const result =
+      view.finished.status === "cancelled" ? "Tühistatud" : outcomeLabel(view.finished.outcome) || "Lõpetatud";
+    return `Juhtum lõpetatud: ${result}`;
+  }
+  return "";
+}
+
+function ContactIncidentBanner({ clientId }: { clientId: string }) {
+  const userId = useSessionUserId();
+  const [allowed, setAllowed] = useState(false);
+  const [text, setText] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    api<{ me: { roles: string[] } | null }>("/api/bootstrap")
+      .then((data) => {
+        const roles = data.me?.roles ?? [];
+        if (!cancelled) setAllowed(roles.includes("client_relative") || roles.includes("client_guardian"));
+      })
+      .catch(() => {
+        if (!cancelled) setAllowed(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  useEffect(() => {
+    if (!allowed) {
+      setText("");
+      return;
+    }
+    let cancelled = false;
+
+    async function load() {
+      const data = await api<HelpSnapshot>(`/api/clients/${clientId}/help`);
+      if (!cancelled) setText(bannerText(data));
+    }
+
+    load().catch(() => undefined);
+    const timer = window.setInterval(() => {
+      load().catch(() => undefined);
+    }, 3000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [allowed, clientId, userId]);
+
+  if (!text) return null;
+  return (
+    <p className="rounded-2xl bg-white px-4 py-3 text-xl font-semibold" aria-live="polite">
+      {text}
+    </p>
+  );
+}
 
 export function ClientProfile({ clientId }: { clientId: string }) {
   const userId = useSessionUserId();
@@ -126,6 +212,9 @@ export function ClientProfile({ clientId }: { clientId: string }) {
           Kliendid
         </Link>
         <h1 className="mt-2 text-3xl font-extrabold">{profile.elderName}</h1>
+        <div className="mt-3">
+          <ContactIncidentBanner clientId={clientId} />
+        </div>
         <p className="mt-1 text-xl">{profile.municipalityName}</p>
         {profile.phone ? <p className="text-xl">{profile.phone}</p> : null}
         <Link className="mt-3 inline-block text-xl font-bold underline" href={`/kliendid/${clientId}/abi`}>

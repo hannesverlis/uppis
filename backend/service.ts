@@ -108,7 +108,8 @@ function latestFor(db: Db, clientId: string) {
 
 function recentResolved(db: Db, clientId: string) {
   const latest = latestFor(db, clientId);
-  if (!latest || latest.status !== "resolved" || !latest.resolvedAt) return null;
+  if (!latest || !latest.resolvedAt) return null;
+  if (latest.status !== "resolved" && latest.status !== "cancelled") return null;
   if (Date.now() - new Date(latest.resolvedAt).getTime() > FINISHED_MS) return null;
   return {
     id: latest.id,
