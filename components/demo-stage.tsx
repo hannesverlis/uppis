@@ -73,20 +73,100 @@ const PHONES: Phone[] = [
   },
 ];
 
+const PUBLIC_PIN = process.env.NEXT_PUBLIC_DEMO_PIN ?? "";
+
+function savedPin() {
+  if (PUBLIC_PIN) return PUBLIC_PIN;
+  if (typeof window === "undefined") return "";
+  return window.sessionStorage.getItem("uppis_demo_pin") ?? "";
+}
+
 export function DemoStage() {
   const [picked, setPicked] = useState(() => PHONES.map(() => 0));
+  const [generation, setGeneration] = useState(0);
+  const [confirming, setConfirming] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [askPin, setAskPin] = useState(false);
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState("");
+
+  async function resetDemo() {
+    const code = savedPin() || pin.trim();
+    if (!code) {
+      setAskPin(true);
+      setError("");
+      return;
+    }
+    if (!confirming) {
+      setConfirming(true);
+      setError("");
+      return;
+    }
+    setSending(true);
+    setError("");
+    try {
+      const headers = {
+        "content-type": "application/json",
+        "x-uppis-user": ID.anna,
+      };
+      const pinResponse = await fetch("/api/admin/pin", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ pin: code }),
+      });
+      const pinBody = (await pinResponse.json().catch(() => ({}))) as { error?: string };
+      if (!pinResponse.ok) throw new Error(pinBody.error || "Vale PIN");
+      if (!PUBLIC_PIN) window.sessionStorage.setItem("uppis_demo_pin", code);
+      const resetResponse = await fetch("/api/admin/reset", { method: "POST", headers });
+      const resetBody = (await resetResponse.json().catch(() => ({}))) as { error?: string };
+      if (!resetResponse.ok) throw new Error(resetBody.error || "Lähtestamine ebaõnnestus.");
+      setGeneration((current) => current + 1);
+      setConfirming(false);
+      setAskPin(false);
+    } catch (reason: unknown) {
+      setError(reason instanceof Error ? reason.message : "Lähtestamine ebaõnnestus.");
+      setConfirming(false);
+    } finally {
+      setSending(false);
+    }
+  }
 
   return (
     <main className="flex min-h-dvh flex-col bg-[#1c1915] px-6 py-3 text-white">
-      <header className="flex items-end justify-between gap-4">
+      <header className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold">Uppis</h1>
-          <p className="text-sm text-white/80">Kolm vaadet korraga. Vasakul kutsub abi, keskel võtab vastu.</p>
+          <p className="text-sm text-white/80">Kiire abi, kui kukkusid kodus</p>
         </div>
-        <Link className="text-sm font-bold text-white underline" href="/valik">
-          Valik
-        </Link>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {askPin && !PUBLIC_PIN ? (
+            <input
+              className="min-h-10 w-24 rounded-lg border border-white/40 bg-[#1c1915] px-2 text-sm"
+              type="password"
+              inputMode="numeric"
+              autoComplete="off"
+              aria-label="Demo PIN"
+              value={pin}
+              onChange={(event) => {
+                setPin(event.target.value);
+                setConfirming(false);
+              }}
+            />
+          ) : null}
+          <button
+            className="min-h-10 rounded-xl bg-white px-3 text-sm font-bold text-[#1c1915] disabled:opacity-60"
+            type="button"
+            disabled={sending}
+            onClick={() => void resetDemo()}
+          >
+            {confirming ? "Kinnita lähtestamine" : "Lähtesta demo"}
+          </button>
+          <Link className="min-h-10 rounded-xl border border-white/40 px-3 py-2 text-sm font-bold" href="/valik">
+            Ava eraldi
+          </Link>
+        </div>
       </header>
+      {error ? <p className="mt-2 text-sm font-semibold text-[#ffb4b4]">{error}</p> : null}
       <div className="mt-2 grid flex-1 grid-cols-3 items-start gap-6">
         {PHONES.map((phone, index) => {
           const viewer = phone.viewers[picked[index]] ?? phone.viewers[0];
@@ -125,6 +205,7 @@ export function DemoStage() {
               >
                 <div className="absolute left-1/2 top-2 h-3 w-16 -translate-x-1/2 rounded-full bg-black/75" />
                 <iframe
+                  key={`${generation}-${viewer.src}`}
                   title={`${phone.title}, ${viewer.label}`}
                   src={viewer.src}
                   className="h-full w-full border-0 bg-[#f3efe6]"
