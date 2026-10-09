@@ -479,7 +479,13 @@ export function acceptIncident(user: SessionUser, incidentId: string, body: Reco
     if (!session) throw new ApiError("Vali demokasutaja", 401, "AUTH");
     const incident = incidentById(db, incidentId);
     const client = clientById(db, incident.clientId);
-    assertCan(session, "accept_incident", resourceForIncident(incident, client));
+    const resource = resourceForIncident(incident, client);
+    if (incident.status !== "open") {
+      assertCan(session, "view_client", resource);
+      const takenBy = nameOf(db, incident.helperUserId) ?? "keegi";
+      throw new ApiError(`Kutse võttis juba vastu ${takenBy}`, 409, "CONFLICT");
+    }
+    assertCan(session, "accept_incident", resource);
     incident.status = "helper_on_way";
     incident.helperUserId = session.id;
     incident.helperEtaMin = eta;

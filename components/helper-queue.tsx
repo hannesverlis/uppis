@@ -153,6 +153,15 @@ export function HelperQueue() {
       const details = await Promise.all(queue.map((item) => api<IncidentDetail>(`/api/incidents/${item.id}`)));
       setItems(details);
     } catch (reason: unknown) {
+      if (reason instanceof ApiRequestError && reason.status === 409) {
+        try {
+          await reload();
+        } catch {
+          setItems([]);
+        }
+        setError(reason.message);
+        return;
+      }
       setError(reason instanceof ApiRequestError ? reason.message : "Kutset ei saanud vastu võtta.");
     } finally {
       setAcceptingId("");
@@ -189,6 +198,11 @@ export function HelperQueue() {
             {item.clientPhone ? <p className="text-xl">{item.clientPhone}</p> : null}
             {item.accessNotes ? <p className="mt-2 text-xl">{item.accessNotes}</p> : null}
             <p className="mt-2 text-base">{statusLabel(item.status)}</p>
+            {item.status === "helper_on_way" && item.helperName && !item.canAccept && !item.canMarkArrived ? (
+              <p className="mt-2 text-xl font-semibold text-[#5c564c]">
+                Kutse võttis juba vastu {item.helperName}. {item.helperName} on teel, ETA {item.helperEtaMin ?? ""} min.
+              </p>
+            ) : null}
             {item.status === "helper_on_way" && item.helperEtaMin ? (
               <div className="mt-3">
                 <p className="text-base font-semibold">Saabumiseni</p>
