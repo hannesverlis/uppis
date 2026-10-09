@@ -83,6 +83,7 @@ function savedPin() {
 
 export function DemoStage() {
   const [picked, setPicked] = useState(() => PHONES.map(() => 0));
+  const [mobileTab, setMobileTab] = useState(0);
   const [generation, setGeneration] = useState(0);
   const [confirming, setConfirming] = useState(false);
   const [sending, setSending] = useState(false);
@@ -132,7 +133,7 @@ export function DemoStage() {
   }
 
   return (
-    <main className="flex min-h-dvh flex-col bg-[#1c1915] px-6 py-3 text-white">
+    <main className="flex min-h-dvh flex-col bg-[#1c1915] px-3 py-3 text-white max-lg:pb-16 lg:overflow-hidden lg:px-4 xl:px-6">
       <header className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold">Uppis</h1>
@@ -167,12 +168,15 @@ export function DemoStage() {
         </div>
       </header>
       {error ? <p className="mt-2 text-sm font-semibold text-[#ffb4b4]">{error}</p> : null}
-      <div className="mt-2 grid flex-1 grid-cols-3 items-start gap-6">
+      <div className="mt-2 grid min-h-0 flex-1 grid-cols-1 items-start lg:grid-cols-3 lg:gap-3 xl:gap-6">
         {PHONES.map((phone, index) => {
           const viewer = phone.viewers[picked[index]] ?? phone.viewers[0];
           return (
-            <section key={phone.title} className="flex min-w-0 flex-col items-center">
-              <h2 className="text-lg font-extrabold leading-tight" style={{ color: phone.label }}>
+            <section
+              key={phone.title}
+              className={`${mobileTab === index ? "flex" : "hidden"} min-w-0 flex-col items-center lg:flex`}
+            >
+              <h2 className="hidden text-lg font-extrabold leading-tight lg:block" style={{ color: phone.label }}>
                 {phone.title}
               </h2>
               <label className="mt-1 text-xs text-white/80" htmlFor={`viewer-${index}`}>
@@ -194,29 +198,45 @@ export function DemoStage() {
                 </select>
               </label>
               <div
-                className="relative mt-2 w-full shadow-[0_24px_60px_rgba(0,0,0,0.45)]"
+                className="relative mt-2 w-full max-lg:h-[calc(100dvh-9rem)] lg:h-[min(78dvh,780px)] lg:max-w-[300px] lg:bg-[var(--phone-bezel)] lg:p-[var(--phone-pad)] lg:shadow-[0_24px_60px_rgba(0,0,0,0.45)] xl:max-w-[var(--phone-width)]"
                 style={{
-                  maxWidth: phone.width,
-                  height: "min(72dvh, 760px)",
-                  background: phone.bezel,
-                  borderRadius: phone.radius,
-                  padding: phone.padding,
+                  ["--phone-width" as string]: phone.width,
+                  ["--phone-bezel" as string]: phone.bezel,
+                  ["--phone-pad" as string]: phone.padding,
+                  borderRadius: undefined,
                 }}
               >
-                <div className="absolute left-1/2 top-2 h-3 w-16 -translate-x-1/2 rounded-full bg-black/75" />
+                <div
+                  className="absolute inset-0 hidden lg:block"
+                  style={{ borderRadius: phone.radius, background: phone.bezel }}
+                />
+                <div className="absolute left-1/2 top-2 z-10 hidden h-3 w-16 -translate-x-1/2 rounded-full bg-black/75 lg:block" />
                 <iframe
                   key={`${generation}-${viewer.src}`}
                   title={`${phone.title}, ${viewer.label}`}
                   src={viewer.src}
-                  className="h-full w-full border-0 bg-[#f3efe6]"
-                  style={{ borderRadius: phone.inner }}
+                  className="relative z-10 h-full w-full border-0 bg-[#f3efe6] lg:rounded-[var(--phone-inner)]"
+                  style={{ ["--phone-inner" as string]: phone.inner, borderRadius: undefined }}
                 />
-                <div className="absolute bottom-2 left-1/2 h-1.5 w-16 -translate-x-1/2 rounded-full bg-white/35" />
+                <div className="absolute bottom-2 left-1/2 z-10 hidden h-1.5 w-16 -translate-x-1/2 rounded-full bg-white/35 lg:block" />
               </div>
             </section>
           );
         })}
       </div>
+      <nav className="fixed inset-x-0 bottom-0 z-20 grid h-16 grid-cols-3 lg:hidden" aria-label="Vaated">
+        {PHONES.map((phone, index) => (
+          <button
+            key={phone.title}
+            className={`text-base font-bold ${mobileTab === index ? "bg-[#0c6b52] text-white" : "bg-[#2a2622] text-white/80"}`}
+            type="button"
+            aria-current={mobileTab === index ? "page" : undefined}
+            onClick={() => setMobileTab(index)}
+          >
+            {phone.title}
+          </button>
+        ))}
+      </nav>
     </main>
   );
 }
