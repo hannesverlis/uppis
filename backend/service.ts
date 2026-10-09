@@ -18,7 +18,7 @@ import type {
 } from "./types";
 import { ROLES } from "./types";
 
-const ACTIVE: IncidentStatus[] = ["open", "escalated_112", "helper_on_way"];
+const ACTIVE: IncidentStatus[] = ["open", "escalated_112", "helper_on_way", "helper_arrived"];
 const WAIT_MS = 10 * 60 * 1000;
 const FINISHED_MS = 10 * 1000;
 const ETA = new Set([5, 10, 20, 40]);
@@ -190,6 +190,7 @@ export function getHelpView(user: SessionUser, clientId: string) {
           helperName: nameOf(db, active.helperUserId),
           helperEtaMin: active.helperEtaMin,
           acceptedAt: active.acceptedAt ?? null,
+          arrivedAt: active.arrivedAt ?? null,
           outcome: active.outcome,
           outcomeNote: active.outcomeNote,
           waitingLong: isWaitingLong(active),
@@ -363,6 +364,7 @@ export function createIncident(user: SessionUser, clientId: string, body: Record
       helperUserId: null,
       helperEtaMin: null,
       acceptedAt: null,
+      arrivedAt: null,
       resolvedAt: null,
       outcome: null,
       outcomeNote: null,
@@ -386,6 +388,7 @@ function incidentSummary(db: Db, incident: Incident) {
     helperName: nameOf(db, incident.helperUserId),
     helperEtaMin: incident.helperEtaMin,
     acceptedAt: incident.acceptedAt ?? null,
+    arrivedAt: incident.arrivedAt ?? null,
     waitingLong: isWaitingLong(incident),
     outcome: incident.outcome,
     kovStatus: incident.kovStatus,
@@ -415,6 +418,7 @@ export function getIncident(user: SessionUser, incidentId: string) {
     clientPhone: elder?.phone ?? null,
     accessNotes: canAccess ? client.accessNotes : null,
     canAccept: can(user, "accept_incident", resource),
+    canMarkArrived: can(user, "mark_arrived", resource),
     canClose: can(user, "close_incident", resource),
     canAssign: can(user, "assign_helper", resource),
     assignees: can(user, "assign_helper", resource) ? assigneeOptions(db, client.id, user.organizationId) : [],
@@ -451,6 +455,20 @@ export function acceptIncident(user: SessionUser, incidentId: string, body: Reco
     incident.helperUserId = session.id;
     incident.helperEtaMin = eta;
     incident.acceptedAt = new Date().toISOString();
+    incident.arrivedAt = null;
+  });
+  return getIncident(buildSession(readDb(), user.id)!, incidentId);
+}
+
+export function markArrived(user: SessionUser, incidentId: string) {
+  updateDb((db) => {
+    const session = buildSession(db, user.id);
+    if (!session) throw new ApiError("Vali demokasutaja", 401, "AUTH");
+    const incident = incidentById(db, incidentId);
+    const client = clientById(db, incident.clientId);
+    assertCan(session, "mark_arrived", resourceForIncident(incident, client));
+    incident.status = "helper_arrived";
+    incident.arrivedAt = new Date().toISOString();
   });
   return getIncident(buildSession(readDb(), user.id)!, incidentId);
 }
@@ -489,6 +507,7 @@ export function assignIncident(user: SessionUser, incidentId: string, body: Reco
     incident.helperUserId = helperUserId;
     incident.helperEtaMin = eta;
     incident.acceptedAt = new Date().toISOString();
+    incident.arrivedAt = null;
     incident.status = "helper_on_way";
   });
   return getIncident(buildSession(readDb(), user.id)!, incidentId);

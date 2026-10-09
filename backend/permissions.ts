@@ -63,7 +63,9 @@ export function can(user: SessionUser, action: Action, resource: PermissionResou
       if (
         resource.incident &&
         resource.incident.helperUserId === user.id &&
-        (resource.incident.status === "helper_on_way" || resource.incident.status === "resolved")
+        (resource.incident.status === "helper_on_way" ||
+          resource.incident.status === "helper_arrived" ||
+          resource.incident.status === "resolved")
       ) {
         return true;
       }
@@ -77,8 +79,17 @@ export function can(user: SessionUser, action: Action, resource: PermissionResou
         isHelper(user, resource.incident.clientId) &&
         hasAny(user, HELPER_ROLES)
       );
-    case "close_incident":
+    case "mark_arrived":
       if (!resource.incident || resource.incident.status !== "helper_on_way") return false;
+      if (resource.incident.helperUserId === user.id) return true;
+      return has(user, "helper_coordinator") && user.orgClientIds.includes(resource.incident.clientId);
+    case "close_incident":
+      if (
+        !resource.incident ||
+        (resource.incident.status !== "helper_on_way" && resource.incident.status !== "helper_arrived")
+      ) {
+        return false;
+      }
       if (resource.incident.helperUserId === user.id) return true;
       return has(user, "helper_coordinator") && user.orgClientIds.includes(resource.incident.clientId);
     case "view_org":

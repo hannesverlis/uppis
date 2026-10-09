@@ -2,6 +2,7 @@ const STATUS_LABELS: Record<string, string> = {
   open: "Ootel",
   escalated_112: "Suunatud 112-le",
   helper_on_way: "Täitja teel",
+  helper_arrived: "Abistaja on kohal",
   resolved: "Lõpetatud",
   cancelled: "Tühistatud",
 };
@@ -25,6 +26,13 @@ export function statusLabel(status: string): string {
 export function outcomeLabel(outcome: string | null): string {
   if (!outcome) return "";
   return OUTCOME_LABELS[outcome] ?? outcome;
+}
+
+export function formatClock(value: string): string {
+  return new Intl.DateTimeFormat("et-EE", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
 }
 
 export function formatWhen(value: string): string {

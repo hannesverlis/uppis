@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { api, ApiRequestError } from "./api";
 import { ArrivalClock } from "./arrival-clock";
 import { useSessionUserId } from "./app-shell";
-import { CLOSE_OPTIONS, statusLabel } from "./labels";
+import { CLOSE_OPTIONS, formatClock, statusLabel } from "./labels";
 
 type QueueItem = {
   id: string;
@@ -22,7 +22,9 @@ type IncidentDetail = QueueItem & {
   clientPhone: string | null;
   accessNotes: string | null;
   acceptedAt: string | null;
+  arrivedAt: string | null;
   canAccept: boolean;
+  canMarkArrived: boolean;
   canClose: boolean;
 };
 
@@ -61,6 +63,7 @@ export function HelperQueue() {
   const [otherId, setOtherId] = useState("");
   const [note, setNote] = useState("");
   const [closing, setClosing] = useState(false);
+  const [arrivingId, setArrivingId] = useState("");
 
   useEffect(() => {
     if (!userId) {
@@ -124,6 +127,19 @@ export function HelperQueue() {
     }
   }
 
+  async function markHere(incidentId: string) {
+    setArrivingId(incidentId);
+    setError("");
+    try {
+      await api(`/api/incidents/${incidentId}/arrived`, { method: "POST" });
+      await reload();
+    } catch (reason: unknown) {
+      setError(reason instanceof ApiRequestError ? reason.message : "Kohalolekut ei saanud märkida.");
+    } finally {
+      setArrivingId("");
+    }
+  }
+
   async function accept(incidentId: string, etaMin: number) {
     setAcceptingId(incidentId);
     setError("");
@@ -166,6 +182,19 @@ export function HelperQueue() {
                 <p className="text-base font-semibold">Saabumiseni</p>
                 <ArrivalClock from={item.acceptedAt || item.createdAt} minutes={item.helperEtaMin} />
               </div>
+            ) : null}
+            {item.status === "helper_arrived" && item.arrivedAt ? (
+              <p className="mt-3 text-xl font-extrabold">Kohal alates {formatClock(item.arrivedAt)}</p>
+            ) : null}
+            {item.canMarkArrived ? (
+              <button
+                className="mt-4 min-h-16 w-full rounded-2xl bg-[#0c6b52] px-3 text-xl font-bold text-white disabled:opacity-60"
+                type="button"
+                disabled={arrivingId === item.id}
+                onClick={() => void markHere(item.id)}
+              >
+                Olen kohal
+              </button>
             ) : null}
             {item.canClose ? (
               closingId === item.id ? (

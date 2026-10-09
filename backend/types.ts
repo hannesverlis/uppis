@@ -16,6 +16,7 @@ export type IncidentStatus =
   | "open"
   | "escalated_112"
   | "helper_on_way"
+  | "helper_arrived"
   | "resolved"
   | "cancelled";
 
@@ -86,6 +87,7 @@ export type Incident = {
   helperUserId: string | null;
   helperEtaMin: number | null;
   acceptedAt: string | null;
+  arrivedAt: string | null;
   resolvedAt: string | null;
   outcome: Outcome | null;
   outcomeNote: string | null;
@@ -136,6 +138,7 @@ export type Action =
   | "view_access"
   | "view_queue"
   | "accept_incident"
+  | "mark_arrived"
   | "close_incident"
   | "view_org"
   | "assign_helper"

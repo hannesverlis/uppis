@@ -28,6 +28,7 @@ function pastIncident(
     helperUserId,
     helperEtaMin: helperUserId ? 10 : null,
     acceptedAt: helperUserId ? daysAgo(days) : null,
+    arrivedAt: null,
     resolvedAt: daysAgo(days - 0.02),
     outcome: "helped_up",
     outcomeNote: null,

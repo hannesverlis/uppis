@@ -17,6 +17,7 @@ type HelpView = {
     helperName: string | null;
     helperEtaMin: number | null;
     acceptedAt: string | null;
+    arrivedAt: string | null;
     outcome: string | null;
     outcomeNote: string | null;
     waitingLong: boolean;
@@ -158,6 +159,13 @@ export function HelpPanel({ clientId }: { clientId: string }) {
 
       {showFarewell && !active ? (
         <p className="mt-6 text-2xl font-extrabold leading-snug">Abi on lõpetatud. Hoia end!</p>
+      ) : null}
+
+      {active?.status === "helper_arrived" ? (
+        <div className="mt-6 flex flex-col gap-3">
+          <p className="text-2xl font-extrabold leading-snug">{active.helperName ?? "Abistaja"} on kohal.</p>
+          <Call112 />
+        </div>
       ) : null}
 
       {active?.status === "escalated_112" ? (

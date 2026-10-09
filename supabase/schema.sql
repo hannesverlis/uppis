@@ -55,10 +55,11 @@ create table incidents (
   created_at timestamptz default now(),
   triage jsonb,
   status text not null default 'open'
-    check (status in ('open','escalated_112','helper_on_way','resolved','cancelled')),
+    check (status in ('open','escalated_112','helper_on_way','helper_arrived','resolved','cancelled')),
   helper_user_id uuid references users(id),
   helper_eta_min int,
   accepted_at timestamptz,
+  arrived_at timestamptz,
   resolved_at timestamptz,
   outcome text,
   outcome_note text,
