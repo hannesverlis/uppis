@@ -8,7 +8,8 @@ import { ArrivalClock, isArrivalLate } from "./arrival-clock";
 import { useSessionUserId } from "./app-shell";
 import { useWithActor } from "./use-with-actor";
 import { formatClock } from "./labels";
-import { say, sayRepeated, setVoiceEnabled, setVoiceVolume, unlockAudio, voiceEnabled, voiceVolume, preload, type Clip } from "./voice";
+import { say, sayRepeated, setVoiceEnabled, setVoiceVolume, unlockAudio, voiceEnabled, voiceVolume, preload } from "./voice";
+import { clipFor } from "./voice-plan";
 import { keepAwake, release } from "./wake-lock";
 import { BottomSheet } from "./ui/bottom-sheet";
 import { Button } from "./ui/button";
@@ -38,11 +39,6 @@ type HelpView = {
 };
 
 const heardOnThisPage = new Set<string>();
-
-function etaClip(minutes: number | null): Clip | null {
-  if (minutes === 5 || minutes === 10 || minutes === 20 || minutes === 40) return `abi-teel-${minutes}`;
-  return null;
-}
 
 function speakOnce(local: Set<string>, key: string, play: () => void) {
   if (local.has(key) || heardOnThisPage.has(key)) return;
@@ -222,17 +218,18 @@ export function HelpPanel({ clientId }: { clientId: string }) {
     const late = active.status === "helper_on_way" && eta > 0 && isArrivalLate(from, eta, now);
     const prior = previous.current;
     previous.current = { id: active.id, status: active.status, late };
-    if (!prior || prior.id !== active.id) return;
-
-    if (prior.status === "open" && active.status === "helper_on_way") {
-      const clip = etaClip(active.helperEtaMin);
-      if (clip) speakOnce(heard.current, `${active.id}:${clip}`, () => sayRepeated(clip));
-    }
-    if (prior.status === "helper_on_way" && active.status === "helper_arrived") {
-      speakOnce(heard.current, `${active.id}:helper_arrived`, () => sayRepeated("abistaja-kohal"));
-    }
-    if (active.status === "helper_on_way" && late && !prior.late) {
-      speakOnce(heard.current, `${active.id}:late`, () => say("abistaja-hilineb"));
+    const clip = clipFor(prior, {
+      id: active.id,
+      status: active.status,
+      late,
+      etaMin: active.helperEtaMin,
+    });
+    if (clip === "abistaja-hilineb") {
+      speakOnce(heard.current, `${active.id}:late`, () => say(clip));
+    } else if (clip === "abistaja-kohal") {
+      speakOnce(heard.current, `${active.id}:helper_arrived`, () => sayRepeated(clip));
+    } else if (clip) {
+      speakOnce(heard.current, `${active.id}:${clip}`, () => sayRepeated(clip));
     }
     if (active.status === "resolved" || active.status === "cancelled") release();
   }, [now, view]);

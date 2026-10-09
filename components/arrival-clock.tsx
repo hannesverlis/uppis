@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { isArrivalLate } from "./arrival-time";
 
 function clock(totalSeconds: number) {
   const hours = Math.floor(totalSeconds / 3600);
@@ -10,9 +11,7 @@ function clock(totalSeconds: number) {
   return hours > 0 ? `${hours}:${text}` : text;
 }
 
-export function isArrivalLate(from: string, minutes: number, now = Date.now()) {
-  return now > new Date(from).getTime() + minutes * 60 * 1000;
-}
+export { isArrivalLate } from "./arrival-time";
 
 export function ArrivalClock({ from, minutes, large = false }: { from: string; minutes: number; large?: boolean }) {
   const [now, setNow] = useState(() => Date.now());
