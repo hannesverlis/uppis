@@ -12,3 +12,8 @@ data/e2e-db.json
 .next-e2e/
 test-results/
 playwright-report/
+*.md 
+*.txt 
+*.log
+
+audio-original/
