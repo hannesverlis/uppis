@@ -56,3 +56,16 @@ body {
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+@keyframes sheet-rise {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.sheet-rise {
+  animation: sheet-rise 250ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet-rise { animation: none; }
+}
