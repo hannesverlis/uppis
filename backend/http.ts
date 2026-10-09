@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { ApiError } from "./errors";
 import { buildSession } from "./session";
@@ -7,6 +7,7 @@ import type { SessionUser } from "./types";
 
 const USER_COOKIE = "uppis_user";
 const PIN_COOKIE = "uppis_admin_ok";
+const ACTOR_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function json(data: unknown, status = 200) {
   return NextResponse.json(data, {
@@ -42,8 +43,9 @@ export async function readJson(req: Request): Promise<Record<string, unknown>> {
 }
 
 export async function getSessionUser(): Promise<SessionUser | null> {
+  const headerId = (await headers()).get("x-uppis-user") ?? "";
   const jar = await cookies();
-  const id = jar.get(USER_COOKIE)?.value;
+  const id = ACTOR_RE.test(headerId) ? headerId : jar.get(USER_COOKIE)?.value;
   if (!id) return null;
   return buildSession(readDb(), id);
 }

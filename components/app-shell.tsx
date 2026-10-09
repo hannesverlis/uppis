@@ -29,7 +29,23 @@ const NAV = [
   { href: "/admin", label: "Admin" },
 ] as const;
 
-export function AppShell({ children }: { children: ReactNode }) {
+export type ShellTone = "client" | "helper" | "admin";
+
+const TONE_STYLE: Record<ShellTone, { background: string; accent: string }> = {
+  client: { background: "#f4efe4", accent: "#0c6b52" },
+  helper: { background: "#e7eef6", accent: "#16324f" },
+  admin: { background: "#f6efe6", accent: "#6b3a1f" },
+};
+
+export function AppShell({
+  children,
+  actor = null,
+  tone = null,
+}: {
+  children: ReactNode;
+  actor?: string | null;
+  tone?: ShellTone | null;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [users, setUsers] = useState<SwitcherUser[]>([]);
@@ -39,12 +55,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
-    const response = await fetch("/api/bootstrap", { cache: "no-store" });
+    const response = await fetch("/api/bootstrap", {
+      cache: "no-store",
+      headers: actor ? { "x-uppis-user": actor } : {},
+    });
     if (!response.ok) throw new Error("bootstrap");
     const data = (await response.json()) as { users: SwitcherUser[]; me: Me | null };
     setUsers(data.users);
     setMe(data.me);
-  }, []);
+  }, [actor]);
 
   useEffect(() => {
     let cancelled = false;
@@ -95,12 +114,31 @@ export function AppShell({ children }: { children: ReactNode }) {
       ? "Abistajat pole valitud"
       : "Kasutajat pole valitud";
 
+  const embedded = Boolean(actor);
+  const toneStyle = tone ? TONE_STYLE[tone] : null;
+
   return (
-    <div className="mx-auto flex min-h-dvh max-w-lg flex-col px-4">
+    <div
+      className="mx-auto flex min-h-dvh max-w-lg flex-col px-4"
+      style={toneStyle ? { background: toneStyle.background } : undefined}
+    >
       <header className="py-4">
-        <Link href="/" className="text-sm font-semibold uppercase tracking-wide text-[#0c6b52]">
-          Uppis
-        </Link>
+        <p
+          className="text-sm font-semibold uppercase tracking-wide text-[#0c6b52]"
+          style={toneStyle ? { color: toneStyle.accent } : undefined}
+        >
+          {embedded ? (
+            "Uppis"
+          ) : (
+            <Link href="/" className="text-inherit">
+              Uppis
+            </Link>
+          )}
+        </p>
+        {embedded ? (
+          <p className="mt-2 text-2xl font-extrabold">{me ? me.name : "…"}</p>
+        ) : null}
+        {embedded ? null : (
         <nav aria-label="Põhimenüü" className="mt-3 grid grid-cols-3 gap-2">
           {NAV.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -118,6 +156,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             );
           })}
         </nav>
+        )}
+        {embedded ? null : (
+        <>
         <label className="mt-4 block text-base font-semibold" htmlFor="demo-user">
           {menuLabel}
         </label>
@@ -139,8 +180,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           {me ? `Oled: ${me.name} · ${roleList(me.roles)}` : "Kedagi pole valitud."}
         </p>
         {error ? <p className="mt-2 text-base font-semibold text-[#9f1d1d]">{error}</p> : null}
+        </>
+        )}
       </header>
-      <SessionUserContext.Provider value={me?.id ?? null}>
+      <SessionUserContext.Provider value={actor ?? me?.id ?? null}>
         <div className="flex-1 pb-8">{children}</div>
       </SessionUserContext.Provider>
       <footer className="border-t border-[#1c1915]/20 py-4 text-base">
