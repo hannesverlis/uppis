@@ -56,7 +56,7 @@ Neil ei ole tühistamise, vastuvõtu ega sulgemise nuppu. Lugemine käib olemaso
 | Võta vastu | kliendi täitja | ainult `open`. Kui keegi jõudis enne, vastus 409: „Kutse võttis juba vastu {nimi}“. |
 | Olen kohal | määratud täitja või organisatsiooni koordinaator | `helper_on_way` |
 | Lõpeta juhtum | määratud täitja või koordinaator | `helper_on_way` või `helper_arrived`. Tulemus: `helped_up`, `called_112` või `other` (märkus kuni 500 märki). |
-| Lähtesta demo | süsteemi admin | PIN, siis kinnitus „Kinnita lähtestamine“. `POST /api/admin/pin` ja `POST /api/admin/reset`. |
+| Lähtesta demo | süsteemi admin | kinnitus „Kinnita lähtestamine“, seejärel `POST /api/admin/reset`. |
 
 Teine täitja näeb vastuvõetud kutset halli tekstiga „Kutse võttis juba vastu {nimi}“ ja ETA-d, ilma vastuvõtunuppudeta. Kella eraldi nulli panna ei saa. Uus kutse aktiivse juhtumi peale aega ei nulli.
 
