@@ -4,8 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api, ApiRequestError } from "./api";
-import { useSessionUserId } from "./app-shell";
+import { useEmbedded, usePageTitle, useSessionUserId } from "./app-shell";
 import { useWithActor } from "./use-with-actor";
+import { Avatar } from "./ui/avatar";
+import { ChevronIcon } from "./ui/icons";
+import { ListRow } from "./ui/list-row";
 
 type ClientCard = {
   id: string;
@@ -20,9 +23,11 @@ type ClientCard = {
 export function ClientsList() {
   const router = useRouter();
   const userId = useSessionUserId();
+  const embedded = useEmbedded();
   const withActor = useWithActor();
   const [clients, setClients] = useState<ClientCard[] | null>(null);
   const [error, setError] = useState("");
+  usePageTitle("Kliendid");
 
   useEffect(() => {
     let cancelled = false;
@@ -60,7 +65,7 @@ export function ClientsList() {
   if (clients.length === 0) {
     return (
       <main>
-        <h1 className="text-3xl font-extrabold">Kliendid</h1>
+        {embedded ? <h1 className="text-2xl font-bold">Kliendid</h1> : null}
         <p className="mt-3 text-xl">Sellel kasutajal pole kliente.</p>
       </main>
     );
@@ -68,22 +73,22 @@ export function ClientsList() {
 
   return (
     <main>
-      <h1 className="text-3xl font-extrabold">Kliendid</h1>
-      <div className="mt-4 flex flex-col gap-3">
+      {embedded ? <h1 className="mb-2 text-2xl font-bold">Kliendid</h1> : null}
+      <div>
         {clients.map((client) => (
           <Link
             key={client.id}
             href={withActor(
               client.canCall && !client.canEdit ? `/kliendid/${client.id}/abi` : `/kliendid/${client.id}`,
             )}
-            className="block rounded-2xl bg-white px-5 py-4"
+            className="block"
           >
-            <span className="block text-2xl font-extrabold">{client.name}</span>
-            <span className="mt-1 block text-xl">{client.address}</span>
-            <span className="mt-1 block text-base">
-              {client.municipalityName}
-              {client.relation ? ` · ${client.relation}` : ""}
-            </span>
+            <ListRow
+              leading={<Avatar name={client.name} size={40} />}
+              title={client.name}
+              subtitle={`${client.address} · ${client.municipalityName}${client.relation ? ` · ${client.relation}` : ""}`}
+              trailing={<ChevronIcon className="h-5 w-5 text-ink-muted" />}
+            />
           </Link>
         ))}
       </div>

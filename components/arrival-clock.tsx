@@ -14,7 +14,7 @@ export function isArrivalLate(from: string, minutes: number, now = Date.now()) {
   return now > new Date(from).getTime() + minutes * 60 * 1000;
 }
 
-export function ArrivalClock({ from, minutes }: { from: string; minutes: number }) {
+export function ArrivalClock({ from, minutes, large = false }: { from: string; minutes: number; large?: boolean }) {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export function ArrivalClock({ from, minutes }: { from: string; minutes: number 
   const late = delta < 0;
 
   return (
-    <p className={`text-4xl font-extrabold tabular-nums ${late ? "text-danger" : ""}`} aria-live="polite">
+    <p className={`font-extrabold tabular-nums ${large ? "text-[56px] leading-none" : "text-4xl"} ${late ? "text-danger" : "text-brand"}`} aria-live="polite">
       {late ? `Hilineb +${clock(-delta)}` : clock(delta)}
     </p>
   );

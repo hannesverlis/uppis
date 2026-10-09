@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { api, ApiRequestError } from "./api";
 import { useSessionUserId } from "./app-shell";
 import { formatWhen, kovStatusLabel, outcomeLabel, statusLabel } from "./labels";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
 
 type Session = {
   me: { id: string; roles: string[] } | null;
@@ -109,16 +111,16 @@ export function KovPanel() {
 
   return (
     <section className="mt-6">
-      <h2 className="text-2xl font-extrabold">Omavalitsuse juhtumid</h2>
-      <p className="mt-2 text-xl leading-relaxed">
+      <h2 className="text-base font-bold">Omavalitsuse juhtumid</h2>
+      <p className="mt-2 text-base leading-relaxed">
         Näed oma linna juhtumeid. Teise omavalitsuse read jäävad peitu.
       </p>
       {data && data.repeatFallers.length > 0 ? (
-        <div className="mt-4 rounded-2xl bg-white px-5 py-4">
-          <h3 className="text-xl font-extrabold">Korduvkukkujad</h3>
+        <Card className="mt-4">
+          <h3 className="text-base font-bold">Korduvkukkujad</h3>
           <ul className="mt-3 space-y-3">
             {data.repeatFallers.map((person) => (
-              <li key={person.clientId} className="text-xl leading-relaxed">
+              <li key={person.clientId} className="text-base leading-relaxed">
                 <span className="font-bold">{person.name}</span>
                 {` · ${person.falls30d} korda 30 päeva jooksul`}
                 <span className="block">{person.address}</span>
@@ -126,37 +128,32 @@ export function KovPanel() {
               </li>
             ))}
           </ul>
-        </div>
+        </Card>
       ) : null}
-      {incidents.length === 0 && !error ? <p className="mt-4 text-xl">Juhtumeid pole.</p> : null}
-      <ul className="mt-4 space-y-3">
+      {incidents.length === 0 && !error ? <p className="mt-4 text-base">Juhtumeid pole.</p> : null}
+      <div className="mt-4 space-y-3">
         {incidents.map((incident) => (
-          <li key={incident.id} className="rounded-2xl bg-white px-5 py-4">
-            <p className="text-2xl font-extrabold">{incident.clientName}</p>
-            <p className="mt-1 text-xl">{incident.address}</p>
-            <p className="mt-2 text-xl">
+          <Card key={incident.id}>
+            <p className="text-base font-bold">{incident.clientName}</p>
+            <p className="mt-1 text-base text-ink-muted">{incident.address}</p>
+            <p className="mt-2 text-base">
               {statusLabel(incident.status)}
               {incident.helperName ? ` · ${incident.helperName}` : ""}
             </p>
-            <p className="mt-1 text-xl">{formatWhen(incident.createdAt)}</p>
-            {incident.outcome ? <p className="mt-1 text-xl">{outcomeLabel(incident.outcome)}</p> : null}
-            <p className="mt-1 text-xl font-semibold">
+            <p className="mt-1 text-base">{formatWhen(incident.createdAt)}</p>
+            {incident.outcome ? <p className="mt-1 text-base">{outcomeLabel(incident.outcome)}</p> : null}
+            <p className="mt-1 text-base font-semibold">
               {incident.kovConsent ? kovStatusLabel(incident.kovStatus) : "Nõusolekut pole"}
             </p>
             {incident.kovConsent && incident.kovStatus === "new" ? (
-              <button
-                className="mt-4 min-h-16 w-full rounded-2xl bg-danger px-5 text-xl font-bold text-white disabled:opacity-60"
-                type="button"
-                disabled={busyId === incident.id}
-                onClick={() => takeCase(incident.id)}
-              >
+              <Button className="mt-3" size="admin" disabled={busyId === incident.id} onClick={() => takeCase(incident.id)}>
                 Võta menetlusse
-              </button>
+              </Button>
             ) : null}
-          </li>
+          </Card>
         ))}
-      </ul>
-      {error ? <p className="mt-3 text-xl font-semibold text-danger">{error}</p> : null}
+      </div>
+      {error ? <p className="mt-3 text-base font-semibold text-danger">{error}</p> : null}
     </section>
   );
 }

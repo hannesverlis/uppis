@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ID } from "@/backend/ids";
+import { Logo } from "./ui/logo";
 
 type Viewer = {
   label: string;
@@ -11,24 +12,14 @@ type Viewer = {
 
 type Phone = {
   title: string;
-  bezel: string;
-  label: string;
-  radius: string;
-  inner: string;
   width: string;
-  padding: string;
   viewers: Viewer[];
 };
 
 const PHONES: Phone[] = [
   {
     title: "Abisaaja",
-    bezel: "var(--color-stage)",
-    label: "var(--color-brand-light)",
-    radius: "2.6rem",
-    inner: "1.9rem",
     width: "22rem",
-    padding: "1.45rem 0.7rem 0.85rem",
     viewers: [
       { label: "Helgi Tamm", src: `/kliendid/${ID.clientHelgi}/abi?as=${ID.helgi}&tone=client` },
       { label: "Aino Levin", src: `/kliendid/${ID.clientAino}/abi?as=${ID.aino}&tone=client` },
@@ -37,12 +28,7 @@ const PHONES: Phone[] = [
   },
   {
     title: "Täitja",
-    bezel: "var(--color-ink)",
-    label: "var(--color-brand-light)",
-    radius: "1.7rem",
-    inner: "1.15rem",
     width: "23rem",
-    padding: "1.25rem 0.45rem 0.7rem",
     viewers: [
       { label: "Jüri Mets", src: `/taitjad?as=${ID.juri}&tone=helper` },
       { label: "Mari Tamm", src: `/taitjad?as=${ID.mari}&tone=helper` },
@@ -52,12 +38,7 @@ const PHONES: Phone[] = [
   },
   {
     title: "Lähedane",
-    bezel: "var(--color-stage)",
-    label: "var(--color-brand-light)",
-    radius: "1.15rem",
-    inner: "0.7rem",
     width: "24rem",
-    padding: "1.05rem 0.4rem 0.55rem",
     viewers: [
       {
         label: "Mari Tamm",
@@ -135,14 +116,14 @@ export function DemoStage() {
   return (
     <main className="flex min-h-dvh flex-col bg-stage px-3 py-3 text-white max-lg:pb-16 lg:overflow-hidden lg:px-4 xl:px-6">
       <header className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold">Uppis</h1>
-          <p className="text-sm text-white/80">Kiire abi, kui kukkusid kodus</p>
+        <div className="flex items-center gap-3">
+          <Logo variant="dark" height={40} />
+          <p className="text-sm text-[#C9D1D9]">Kiire abi, kui kukkusid kodus.</p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
           {askPin && !PUBLIC_PIN ? (
             <input
-              className="min-h-10 w-24 rounded-lg border border-white/40 bg-stage px-2 text-sm"
+              className="min-h-11 w-24 rounded-lg border border-white/40 bg-stage px-2 text-sm"
               type="password"
               inputMode="numeric"
               autoComplete="off"
@@ -155,14 +136,14 @@ export function DemoStage() {
             />
           ) : null}
           <button
-            className="min-h-10 rounded-xl bg-white px-3 text-sm font-bold text-ink disabled:opacity-60"
+            className="inline-flex min-h-11 items-center rounded-pill border border-brand-light px-3 text-sm font-semibold text-brand-light disabled:opacity-40"
             type="button"
             disabled={sending}
             onClick={() => void resetDemo()}
           >
             {confirming ? "Kinnita lähtestamine" : "Lähtesta demo"}
           </button>
-          <Link className="min-h-10 rounded-xl border border-white/40 px-3 py-2 text-sm font-bold" href="/valik">
+          <Link className="inline-flex min-h-11 items-center rounded-pill px-3 text-sm font-semibold text-white underline-offset-4 hover:underline" href="/valik">
             Ava eraldi
           </Link>
         </div>
@@ -176,9 +157,8 @@ export function DemoStage() {
               key={phone.title}
               className={`${mobileTab === index ? "flex" : "hidden"} min-w-0 flex-col items-center lg:flex`}
             >
-              <h2 className="hidden text-lg font-extrabold leading-tight lg:block" style={{ color: phone.label }}>
-                {phone.title}
-              </h2>
+              <p className="hidden text-xs font-semibold tracking-wide text-brand-light lg:block">{phone.title.toUpperCase()}</p>
+              <p className="hidden text-base font-semibold text-white lg:block">{viewer.label}</p>
               <label className="mt-1 text-xs text-white/80" htmlFor={`viewer-${index}`}>
                 Vaata kui…
                 <select
@@ -198,38 +178,27 @@ export function DemoStage() {
                 </select>
               </label>
               <div
-                className="relative mt-2 w-full max-lg:h-[calc(100dvh-9rem)] lg:h-[min(78dvh,780px)] lg:max-w-[300px] lg:bg-[var(--phone-bezel)] lg:p-[var(--phone-pad)] lg:shadow-[0_24px_60px_rgba(0,0,0,0.45)] xl:max-w-[var(--phone-width)]"
-                style={{
-                  ["--phone-width" as string]: phone.width,
-                  ["--phone-bezel" as string]: phone.bezel,
-                  ["--phone-pad" as string]: phone.padding,
-                  borderRadius: undefined,
-                }}
+                className="relative mt-2 w-full max-lg:h-[calc(100dvh-9rem)] lg:h-[min(78dvh,780px)] lg:max-w-[300px] lg:border lg:border-[#2b3038] lg:bg-[#1d2127] lg:p-[1.15rem_0.55rem_0.7rem] lg:shadow-[0_24px_60px_rgba(0,0,0,0.45)] xl:max-w-[var(--phone-width)] lg:rounded-[2.6rem]"
+                style={{ ["--phone-width" as string]: phone.width }}
               >
-                <div
-                  className="absolute inset-0 hidden lg:block"
-                  style={{ borderRadius: phone.radius, background: phone.bezel }}
-                />
-                <div className="absolute left-1/2 top-2 z-10 hidden h-3 w-16 -translate-x-1/2 rounded-full bg-black/75 lg:block" />
+                <div className="absolute left-1/2 top-2 z-10 hidden h-4 w-24 -translate-x-1/2 rounded-pill bg-black lg:block" />
                 <iframe
                   key={`${generation}-${viewer.src}`}
                   title={`${phone.title}, ${viewer.label}`}
                   src={viewer.src}
                   allow="autoplay; screen-wake-lock"
-                  className="relative z-10 h-full w-full border-0 bg-bg lg:rounded-[var(--phone-inner)]"
-                  style={{ ["--phone-inner" as string]: phone.inner, borderRadius: undefined }}
+                  className="relative z-10 h-full w-full border-0 bg-bg lg:rounded-[1.9rem]"
                 />
-                <div className="absolute bottom-2 left-1/2 z-10 hidden h-1.5 w-16 -translate-x-1/2 rounded-full bg-white/35 lg:block" />
               </div>
             </section>
           );
         })}
       </div>
-      <nav className="fixed inset-x-0 bottom-0 z-20 grid h-16 grid-cols-3 lg:hidden" aria-label="Vaated">
+      <nav className="fixed inset-x-0 bottom-0 z-20 grid h-16 grid-cols-3 bg-stage lg:hidden" aria-label="Vaated">
         {PHONES.map((phone, index) => (
           <button
             key={phone.title}
-            className={`text-base font-bold ${mobileTab === index ? "bg-brand text-white" : "bg-stage text-white/80"}`}
+            className={`text-base font-bold ${mobileTab === index ? "text-brand-light underline decoration-2 underline-offset-8" : "text-[#C9D1D9]"}`}
             type="button"
             aria-current={mobileTab === index ? "page" : undefined}
             onClick={() => setMobileTab(index)}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Card } from "@/components/ui/card";
 
 const CARDS = [
   {
@@ -21,17 +22,18 @@ const CARDS = [
 export default function ChoicePage() {
   return (
     <main>
-      <h1 className="text-4xl font-extrabold">Vali osa</h1>
-      <div className="mt-6 flex flex-col gap-3">
+      <div className="flex flex-col gap-3">
         {CARDS.map((card) => (
-          <Link key={card.href} href={card.href} className="block min-h-24 rounded-2xl bg-white px-5 py-4">
-            <span className="block text-2xl font-extrabold">{card.title}</span>
-            <span className="mt-1 block text-xl leading-snug">{card.text}</span>
+          <Link key={card.href} href={card.href} className="block">
+            <Card>
+              <span className="block text-xl font-bold">{card.title}</span>
+              <span className="mt-1 block text-base leading-snug text-ink-muted">{card.text}</span>
+            </Card>
           </Link>
         ))}
       </div>
-      <p className="mt-8 text-xl">
-        <Link href="/" className="font-bold underline">
+      <p className="mt-8 text-base">
+        <Link href="/" className="font-semibold text-brand underline">
           Suure ekraani demo
         </Link>
       </p>

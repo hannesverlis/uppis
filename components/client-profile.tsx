@@ -3,9 +3,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, ApiRequestError } from "./api";
-import { useSessionUserId } from "./app-shell";
+import { useEmbedded, usePageTitle, useSessionUserId } from "./app-shell";
 import { useWithActor } from "./use-with-actor";
 import { formatClock, formatWhen, outcomeLabel, statusLabel } from "./labels";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
+import { ListRow } from "./ui/list-row";
+import { MapBackdrop } from "./ui/map-backdrop";
+import { StatusPill } from "./ui/status-pill";
 
 type Profile = {
   id: string;
@@ -67,6 +72,7 @@ function ContactIncidentBanner({ clientId }: { clientId: string }) {
   const userId = useSessionUserId();
   const [allowed, setAllowed] = useState(false);
   const [text, setText] = useState("");
+  const [snap, setSnap] = useState<HelpSnapshot | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -92,7 +98,10 @@ function ContactIncidentBanner({ clientId }: { clientId: string }) {
 
     async function load() {
       const data = await api<HelpSnapshot>(`/api/clients/${clientId}/help`);
-      if (!cancelled) setText(bannerText(data));
+      if (!cancelled) {
+        setSnap(data);
+        setText(bannerText(data));
+      }
     }
 
     load().catch(() => undefined);
@@ -105,16 +114,32 @@ function ContactIncidentBanner({ clientId }: { clientId: string }) {
     };
   }, [allowed, clientId, userId]);
 
-  if (!text) return null;
+  if (!text || !snap) return null;
+  const status = snap.active?.status ?? snap.finished?.status ?? "resolved";
+  const bar =
+    status === "open"
+      ? "border-l-warning-ink"
+      : status === "escalated_112"
+        ? "border-l-danger"
+        : status === "resolved" || status === "cancelled"
+          ? "border-l-border"
+          : "border-l-brand";
   return (
-    <p className="rounded-2xl bg-white px-4 py-3 text-xl font-semibold" aria-live="polite">
-      {text}
-    </p>
+    <Card className={`border-l-4 ${bar}`}>
+      <StatusPill status={status} />
+      <p className="mt-2 text-xl font-semibold" aria-live="polite">
+        {text}
+      </p>
+      {snap.active?.status === "helper_on_way" ? (
+        <MapBackdrop helperName={snap.active.helperName} className="mt-3 h-[140px] rounded-card" />
+      ) : null}
+    </Card>
   );
 }
 
 export function ClientProfile({ clientId }: { clientId: string }) {
   const userId = useSessionUserId();
+  const embedded = useEmbedded();
   const withActor = useWithActor();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [address, setAddress] = useState("");
@@ -198,6 +223,8 @@ export function ClientProfile({ clientId }: { clientId: string }) {
     }
   }
 
+  usePageTitle(profile?.elderName ?? "Profiil");
+
   if (error && !profile) {
     return <p className="text-xl font-semibold text-danger">{error}</p>;
   }
@@ -210,25 +237,23 @@ export function ClientProfile({ clientId }: { clientId: string }) {
   return (
     <main className="flex flex-col gap-6">
       <div>
-        <Link className="text-base font-bold underline" href={withActor("/kliendid")}>
+        {embedded ? <h1 className="text-2xl font-bold">{profile.elderName}</h1> : null}
+        <Link className="text-base font-semibold text-brand underline" href={withActor("/kliendid")}>
           Kliendid
         </Link>
-        <h1 className="mt-2 text-3xl font-extrabold">{profile.elderName}</h1>
         <div className="mt-3">
           <ContactIncidentBanner clientId={clientId} />
         </div>
-        <p className="mt-1 text-xl">{profile.municipalityName}</p>
-        {profile.phone ? <p className="text-xl">{profile.phone}</p> : null}
-        <Link className="mt-3 inline-block text-xl font-bold underline" href={withActor(`/kliendid/${clientId}/abi`)}>
+        <Link className="mt-3 inline-flex min-h-11 items-center text-xl font-bold text-brand underline" href={withActor(`/kliendid/${clientId}/abi`)}>
           Abi-vaade
         </Link>
       </div>
 
-      <section className="rounded-2xl bg-white p-4">
-        <h2 className="text-xl font-extrabold">Aadress</h2>
+      <section>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">Aadress</h2>
         {profile.canEdit ? (
           <input
-            className="mt-2 min-h-14 w-full rounded-xl border-2 border-ink px-3 text-xl"
+            className="mt-2 min-h-14 w-full rounded-card border border-border bg-surface px-3 text-xl"
             value={address}
             onChange={(event) => setAddress(event.target.value)}
           />
@@ -237,10 +262,10 @@ export function ClientProfile({ clientId }: { clientId: string }) {
         )}
         {showAccess ? (
           <>
-            <h2 className="mt-4 text-xl font-extrabold">Ligipääs</h2>
+            <h2 className="mt-4 text-sm font-semibold uppercase tracking-wide text-ink-muted">Ligipääs</h2>
             {profile.canEdit ? (
               <textarea
-                className="mt-2 min-h-24 w-full rounded-xl border-2 border-ink px-3 py-2 text-xl"
+                className="mt-2 min-h-24 w-full rounded-card border border-border bg-surface px-3 py-2 text-xl"
                 value={accessNotes}
                 onChange={(event) => setAccessNotes(event.target.value)}
               />
@@ -250,72 +275,63 @@ export function ClientProfile({ clientId }: { clientId: string }) {
           </>
         ) : null}
         {profile.canEdit ? (
-          <button
-            className="mt-4 min-h-16 w-full rounded-2xl bg-brand px-5 text-xl font-bold text-white disabled:opacity-60"
-            type="button"
-            disabled={saving}
-            onClick={() => save({ address, accessNotes })}
-          >
+          <Button className="mt-4" size="elder" disabled={saving} onClick={() => save({ address, accessNotes })}>
             Salvesta
-          </button>
+          </Button>
         ) : null}
       </section>
 
-      <section className="rounded-2xl bg-white p-4">
-        <h2 className="text-xl font-extrabold">Omavalitsus</h2>
+      <section>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">Omavalitsus</h2>
         <p className="mt-2 text-xl">
           {profile.kovConsent ? "Juhtumid jõuavad omavalitsuseni." : "Juhtumeid omavalitsusele ei saadeta."}
         </p>
         {profile.canSetConsent ? (
-          <button
-            className="mt-4 min-h-16 w-full rounded-2xl bg-stage px-5 text-xl font-bold text-white disabled:opacity-60"
-            type="button"
-            disabled={saving}
-            onClick={() => save({ kovConsent: !profile.kovConsent })}
-          >
+          <Button className="mt-4" variant="secondary" size="elder" disabled={saving} onClick={() => save({ kovConsent: !profile.kovConsent })}>
             {profile.kovConsent ? "Võta nõusolek tagasi" : "Anna nõusolek"}
-          </button>
+          </Button>
         ) : null}
       </section>
 
       <section>
-        <h2 className="text-xl font-extrabold">Lähedased</h2>
-        <ul className="mt-2 flex flex-col gap-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">Lähedased</h2>
+        <div className="mt-1">
           {profile.contacts.map((contact) => (
-            <li key={`${contact.name}-${contact.relation}`} className="rounded-2xl bg-white px-4 py-3 text-xl">
-              {contact.name} · {contact.relation}
-              {contact.phone ? ` · ${contact.phone}` : ""}
-            </li>
+            <ListRow
+              key={`${contact.name}-${contact.relation}`}
+              title={contact.name}
+              subtitle={`${contact.relation}${contact.phone ? ` · ${contact.phone}` : ""}`}
+            />
           ))}
-        </ul>
+        </div>
       </section>
 
       <section>
-        <h2 className="text-xl font-extrabold">Täitjad</h2>
-        <ul className="mt-2 flex flex-col gap-2">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">Täitjad</h2>
+        <div className="mt-1">
           {profile.helpers.map((helper) => (
-            <li
+            <ListRow
               key={`${helper.userId ?? ""}-${helper.organizationId ?? ""}`}
-              className="rounded-2xl bg-white px-4 py-3"
-            >
-              <p className="text-xl">{helper.label}</p>
-              {profile.canManageHelpers ? (
-                <button
-                  className="mt-2 min-h-12 text-lg font-bold underline disabled:opacity-60"
-                  type="button"
-                  disabled={saving}
-                  onClick={() => removeHelper(helper)}
-                >
-                  Eemalda
-                </button>
-              ) : null}
-            </li>
+              title={helper.label ?? "Täitja"}
+              trailing={
+                profile.canManageHelpers ? (
+                  <button
+                    className="min-h-11 px-2 text-base font-semibold text-danger underline disabled:opacity-40"
+                    type="button"
+                    disabled={saving}
+                    onClick={() => removeHelper(helper)}
+                  >
+                    Eemalda
+                  </button>
+                ) : null
+              }
+            />
           ))}
-        </ul>
+        </div>
         {profile.canManageHelpers ? (
           <div className="mt-3 flex flex-col gap-2">
             <select
-              className="min-h-16 rounded-2xl border-2 border-ink bg-white px-3 text-xl"
+              className="min-h-16 rounded-card border border-border bg-surface px-3 text-xl"
               value={helperPick}
               onChange={(event) => setHelperPick(event.target.value)}
             >
@@ -335,33 +351,25 @@ export function ClientProfile({ clientId }: { clientId: string }) {
                 ))}
               </optgroup>
             </select>
-            <button
-              className="min-h-16 rounded-2xl bg-brand px-5 text-xl font-bold text-white disabled:opacity-60"
-              type="button"
-              disabled={saving || !helperPick}
-              onClick={addHelper}
-            >
+            <Button size="elder" disabled={saving || !helperPick} onClick={addHelper}>
               Lisa täitja
-            </button>
+            </Button>
           </div>
         ) : null}
       </section>
 
       <section>
-        <h2 className="text-xl font-extrabold">Juhtumid</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">Juhtumid</h2>
         {profile.incidents.length === 0 ? <p className="mt-2 text-xl">Juhtumeid pole.</p> : null}
-        <ul className="mt-2 flex flex-col gap-2">
+        <div className="mt-1">
           {profile.incidents.map((incident) => (
-            <li key={incident.id} className="rounded-2xl bg-white px-4 py-3 text-xl">
-              <p>{formatWhen(incident.createdAt)}</p>
-              <p>
-                {statusLabel(incident.status)}
-                {incident.outcome ? ` · ${outcomeLabel(incident.outcome)}` : ""}
-                {incident.helperName ? ` · ${incident.helperName}` : ""}
-              </p>
-            </li>
+            <ListRow
+              key={incident.id}
+              title={formatWhen(incident.createdAt)}
+              subtitle={`${statusLabel(incident.status)}${incident.outcome ? ` · ${outcomeLabel(incident.outcome)}` : ""}${incident.helperName ? ` · ${incident.helperName}` : ""}`}
+            />
           ))}
-        </ul>
+        </div>
       </section>
 
       {error ? <p className="text-xl font-semibold text-danger">{error}</p> : null}

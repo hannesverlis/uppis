@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api, ApiRequestError } from "./api";
 import { useSessionUserId } from "./app-shell";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
 
 type Session = {
   me: { id: string; roles: string[] } | null;
@@ -58,18 +60,13 @@ export function AdminReset() {
   }
 
   return (
-    <section className="mt-6 rounded-2xl bg-white px-5 py-4">
-      <h2 className="text-2xl font-extrabold">Demo lähtestamine</h2>
-      <button
-        className="mt-4 min-h-16 w-full rounded-2xl bg-danger px-5 text-xl font-bold text-white disabled:opacity-60"
-        type="button"
-        disabled={sending}
-        onClick={resetDemo}
-      >
+    <Card className="mt-4">
+      <h2 className="text-base font-bold">Demo lähtestamine</h2>
+      <Button className="mt-3" variant="danger" size="admin" disabled={sending} onClick={resetDemo}>
         {confirming ? "Kinnita lähtestamine" : "Lähtesta demo"}
-      </button>
-      {done ? <p className="mt-3 text-xl font-semibold">{done}</p> : null}
-      {error ? <p className="mt-3 text-xl font-semibold text-danger">{error}</p> : null}
-    </section>
+      </Button>
+      {done ? <p className="mt-3 text-base font-semibold">{done}</p> : null}
+      {error ? <p className="mt-3 text-base font-semibold text-danger">{error}</p> : null}
+    </Card>
   );
 }
