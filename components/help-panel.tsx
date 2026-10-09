@@ -10,6 +10,7 @@ type HelpView = {
   clientId: string;
   clientName: string;
   canCall: boolean;
+  canCancel: boolean;
   active: {
     id: string;
     status: string;
@@ -51,6 +52,7 @@ export function HelpPanel({ clientId }: { clientId: string }) {
   const [view, setView] = useState<HelpView | null>(null);
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
   const [showFarewell, setShowFarewell] = useState(false);
 
   useEffect(() => {
@@ -94,6 +96,26 @@ export function HelpPanel({ clientId }: { clientId: string }) {
     const timer = window.setTimeout(() => setShowFarewell(false), left);
     return () => window.clearTimeout(timer);
   }, [view?.active, view?.finished]);
+
+  async function cancelCall() {
+    if (!view?.active) return;
+    if (!confirmCancel) {
+      setConfirmCancel(true);
+      return;
+    }
+    setSending(true);
+    setError("");
+    try {
+      const data = await api<HelpView>(`/api/incidents/${view.active.id}/cancel`, { method: "POST" });
+      setView(data);
+      setConfirmCancel(false);
+    } catch (reason: unknown) {
+      setError(reason instanceof ApiRequestError ? reason.message : "Kutset ei saanud tühistada.");
+      setConfirmCancel(false);
+    } finally {
+      setSending(false);
+    }
+  }
 
   async function callHelper() {
     setSending(true);
@@ -145,6 +167,16 @@ export function HelpPanel({ clientId }: { clientId: string }) {
             {active.waitingLong ? "Keegi ei ole veel kutset vastu võtnud." : "Kutse on saadetud. Ootame abistajat."}
           </p>
           <Call112 tall />
+          {view.canCancel ? (
+            <button
+              className="min-h-16 rounded-2xl border-2 border-[#1c1915] bg-white px-5 text-xl font-bold disabled:opacity-60"
+              type="button"
+              disabled={sending}
+              onClick={() => void cancelCall()}
+            >
+              {confirmCancel ? "Kinnita tühistamine" : "Sain ise hakkama – tühista kutse"}
+            </button>
+          ) : null}
         </div>
       ) : null}
 
@@ -154,6 +186,16 @@ export function HelpPanel({ clientId }: { clientId: string }) {
           <p className="text-base font-semibold">Saabumiseni</p>
           <ArrivalClock from={active.acceptedAt || active.createdAt} minutes={active.helperEtaMin ?? 0} />
           <Call112 />
+          {view.canCancel ? (
+            <button
+              className="min-h-16 rounded-2xl border-2 border-[#1c1915] bg-white px-5 text-xl font-bold disabled:opacity-60"
+              type="button"
+              disabled={sending}
+              onClick={() => void cancelCall()}
+            >
+              {confirmCancel ? "Kinnita tühistamine" : "Sain ise hakkama – tühista kutse"}
+            </button>
+          ) : null}
         </div>
       ) : null}
 

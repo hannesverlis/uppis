@@ -21,6 +21,7 @@ import { ROLES } from "./types";
 const ACTIVE: IncidentStatus[] = ["open", "escalated_112", "helper_on_way", "helper_arrived"];
 const WAIT_MS = 10 * 60 * 1000;
 const FINISHED_MS = 10 * 1000;
+const CANCEL_NOTICE_MS = 30 * 1000;
 const ETA = new Set([5, 10, 20, 40]);
 
 function userById(db: Db, id: string | null | undefined) {
@@ -182,6 +183,7 @@ export function getHelpView(user: SessionUser, clientId: string) {
     clientId: client.id,
     clientName: nameOf(db, client.elderUserId),
     canCall: can(user, "call_help", resourceForClient(client)),
+    canCancel: active ? can(user, "cancel_incident", resourceForIncident(active, client)) : false,
     active: active
       ? {
           id: active.id,
@@ -375,6 +377,28 @@ export function createIncident(user: SessionUser, clientId: string, body: Record
   return { incidentId, status, emergency: status === "escalated_112" };
 }
 
+export function cancelIncident(user: SessionUser, incidentId: string) {
+  updateDb((db) => {
+    const session = buildSession(db, user.id);
+    if (!session) throw new ApiError("Vali demokasutaja", 401, "AUTH");
+    const incident = incidentById(db, incidentId);
+    const client = clientById(db, incident.clientId);
+    assertCan(session, "cancel_incident", resourceForIncident(incident, client));
+    if (incident.status !== "open" && incident.status !== "helper_on_way") {
+      throw new ApiError("Seda kutset ei saa tühistada", 400, "VALIDATION");
+    }
+    incident.status = "cancelled";
+    incident.resolvedAt = new Date().toISOString();
+  });
+  const incident = incidentById(readDb(), incidentId);
+  return getHelpView(buildSession(readDb(), user.id)!, incident.clientId);
+}
+
+function cancelNoticeFor(incident: Incident, userId: string) {
+  if (incident.status !== "cancelled" || incident.helperUserId !== userId || !incident.resolvedAt) return false;
+  return Date.now() - new Date(incident.resolvedAt).getTime() <= CANCEL_NOTICE_MS;
+}
+
 function incidentSummary(db: Db, incident: Incident) {
   const client = clientById(db, incident.clientId);
   return {
@@ -400,7 +424,7 @@ export function getQueue(user: SessionUser) {
   const db = readDb();
   const ids = new Set([...user.helperClientIds, ...user.orgClientIds]);
   return db.incidents
-    .filter((item) => ids.has(item.clientId) && ACTIVE.includes(item.status))
+    .filter((item) => ids.has(item.clientId) && (ACTIVE.includes(item.status) || cancelNoticeFor(item, user.id)))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .map((item) => incidentSummary(db, item));
 }

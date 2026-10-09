@@ -131,6 +131,7 @@ export type PermissionResource = {
 
 export type Action =
   | "call_help"
+  | "cancel_incident"
   | "view_client"
   | "edit_client"
   | "manage_helpers"

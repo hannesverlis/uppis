@@ -167,7 +167,12 @@ export function HelperQueue() {
         <p className="mt-4 text-xl">Aktiivseid abipalveid pole.</p>
       ) : null}
       <div className="mt-4 flex flex-col gap-3">
-        {items?.map((item) => (
+        {items?.map((item) =>
+          item.status === "cancelled" ? (
+            <article key={item.id} className="rounded-2xl bg-white px-5 py-4">
+              <p className="text-2xl font-extrabold leading-snug">Kutse tühistati abisaaja poolt</p>
+            </article>
+          ) : (
           <article key={item.id} className="rounded-2xl bg-white px-5 py-4">
             <p className="text-base font-semibold">Abipalvest</p>
             <RequestClock from={item.createdAt} />
@@ -269,7 +274,8 @@ export function HelperQueue() {
               </div>
             ) : null}
           </article>
-        ))}
+          ),
+        )}
       </div>
     </main>
   );

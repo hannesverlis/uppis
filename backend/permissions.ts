@@ -37,6 +37,13 @@ export function can(user: SessionUser, action: Action, resource: PermissionResou
       return false;
     case "call_help":
       return !!clientId && has(user, "client_elder") && isElder(user, clientId);
+    case "cancel_incident":
+      return (
+        !!resource.incident &&
+        (resource.incident.status === "open" || resource.incident.status === "helper_on_way") &&
+        has(user, "client_elder") &&
+        isElder(user, resource.incident.clientId)
+      );
     case "view_client":
       if (!clientId) return false;
       if (isElder(user, clientId) || isContact(user, clientId) || isHelper(user, clientId)) return true;
