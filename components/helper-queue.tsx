@@ -212,7 +212,7 @@ export function HelperQueue() {
       {items && items.length === 0 && !error ? (
         <div className="flex flex-col items-center px-4 py-10 text-center">
           <img src="/brand/uppis-mark.svg" alt="" className="h-24 w-24 opacity-30 grayscale" />
-          <p className="mt-4 text-base text-ink">Praegu kutseid pole. Anname teada, kui keegi vajab abi.</p>
+          <p className="mt-4 w-full text-base text-ink">Praegu kutseid pole. Anname teada, kui keegi vajab abi.</p>
         </div>
       ) : null}
       <div className="flex flex-col gap-3">
