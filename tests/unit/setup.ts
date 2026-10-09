@@ -5,12 +5,17 @@ import { randomUUID } from "node:crypto";
 import { afterEach, beforeEach, vi } from "vitest";
 import { resetDb } from "../../backend/store";
 
+delete process.env.SUPABASE_URL;
+delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+
 let dbFile = "";
 
-beforeEach(() => {
+beforeEach(async () => {
+  delete process.env.SUPABASE_URL;
+  delete process.env.SUPABASE_SERVICE_ROLE_KEY;
   dbFile = path.join(os.tmpdir(), `uppis-test-${randomUUID()}.json`);
   process.env.UPPIS_DB_FILE = dbFile;
-  resetDb();
+  await resetDb();
 });
 
 afterEach(() => {

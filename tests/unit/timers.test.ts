@@ -27,39 +27,39 @@ function openIncident(id: string, createdAt: string): Incident {
 }
 
 describe("ootamise kell", () => {
-  it("märgib üle 10 minuti oodanud avatud kutse", () => {
+  it("märgib üle 10 minuti oodanud avatud kutse", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(START);
-    const { incidentId } = callHelp();
+    const { incidentId } = await callHelp();
 
     vi.setSystemTime(new Date(START.getTime() + 9 * 60_000 + 59_000));
-    expect(getQueue(as(ID.juri)).find((item) => item.id === incidentId)?.waitingTooLong).toBe(false);
+    expect((await getQueue(await as(ID.juri))).find((item) => item.id === incidentId)?.waitingTooLong).toBe(false);
 
     vi.setSystemTime(new Date(START.getTime() + 10 * 60_000 + 1_000));
-    expect(getQueue(as(ID.juri)).find((item) => item.id === incidentId)?.waitingTooLong).toBe(true);
+    expect((await getQueue(await as(ID.juri))).find((item) => item.id === incidentId)?.waitingTooLong).toBe(true);
   });
 
-  it("ei märgi hilinemist, kui täitja on juba teel", () => {
+  it("ei märgi hilinemist, kui täitja on juba teel", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(START);
-    const { incidentId } = callHelp();
-    acceptIncident(as(ID.juri), incidentId, { etaMin: 10 });
+    const { incidentId } = await callHelp();
+    await acceptIncident(await as(ID.juri), incidentId, { etaMin: 10 });
     vi.setSystemTime(new Date(START.getTime() + 30 * 60_000));
-    expect(getQueue(as(ID.juri)).find((item) => item.id === incidentId)?.waitingTooLong).toBe(false);
+    expect((await getQueue(await as(ID.juri))).find((item) => item.id === incidentId)?.waitingTooLong).toBe(false);
   });
 
-  it("tõstab kaua oodanud kutse järjekorras ette", () => {
+  it("tõstab kaua oodanud kutse järjekorras ette", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(START);
     const older = "50000000-0000-4000-8000-000000000091";
     const newer = "50000000-0000-4000-8000-000000000092";
-    updateDb((db) => {
+    await updateDb((db) => {
       db.incidents.push(
         openIncident(older, new Date(START.getTime() - 11 * 60_000).toISOString()),
         openIncident(newer, START.toISOString()),
       );
     });
-    const ids = getQueue(as(ID.juri))
+    const ids = (await getQueue(await as(ID.juri)))
       .map((item) => item.id)
       .filter((id) => id === older || id === newer);
     expect(ids).toEqual([older, newer]);
