@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { withActor } from "./actor-link";
 import { roleList } from "./roles";
 
 type SwitcherUser = {
@@ -130,7 +131,7 @@ export function AppShell({
           {embedded ? (
             "Uppis"
           ) : (
-            <Link href="/" className="text-inherit">
+            <Link href={withActor("/", actor, tone)} className="text-inherit">
               Uppis
             </Link>
           )}
@@ -145,7 +146,7 @@ export function AppShell({
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={withActor(item.href, actor, tone)}
                 aria-current={active ? "page" : undefined}
                 className={`inline-flex min-h-14 items-center justify-center rounded-2xl px-2 text-center text-lg font-bold ${
                   active ? "bg-[#0c6b52] text-white" : "bg-white text-[#1c1915]"

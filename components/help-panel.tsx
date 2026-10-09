@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { api, ApiRequestError } from "./api";
 import { ArrivalClock, isArrivalLate } from "./arrival-clock";
 import { useSessionUserId } from "./app-shell";
+import { useWithActor } from "./use-with-actor";
 
 type HelpView = {
   clientId: string;
@@ -49,6 +50,7 @@ function Call112({ tall }: { tall?: boolean }) {
 
 export function HelpPanel({ clientId }: { clientId: string }) {
   const userId = useSessionUserId();
+  const withActor = useWithActor();
   const [view, setView] = useState<HelpView | null>(null);
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
@@ -245,7 +247,7 @@ export function HelpPanel({ clientId }: { clientId: string }) {
       {error ? <p className="mt-4 text-xl font-semibold text-[#9f1d1d]">{error}</p> : null}
 
       {!view.canCall ? (
-        <Link className="mt-6 inline-block text-xl font-bold underline" href={`/kliendid/${clientId}`}>
+        <Link className="mt-6 inline-block text-xl font-bold underline" href={withActor(`/kliendid/${clientId}`)}>
           Profiil
         </Link>
       ) : null}

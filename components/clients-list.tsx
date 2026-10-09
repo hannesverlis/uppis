@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api, ApiRequestError } from "./api";
 import { useSessionUserId } from "./app-shell";
+import { useWithActor } from "./use-with-actor";
 
 type ClientCard = {
   id: string;
@@ -19,6 +20,7 @@ type ClientCard = {
 export function ClientsList() {
   const router = useRouter();
   const userId = useSessionUserId();
+  const withActor = useWithActor();
   const [clients, setClients] = useState<ClientCard[] | null>(null);
   const [error, setError] = useState("");
 
@@ -45,9 +47,9 @@ export function ClientsList() {
 
   useEffect(() => {
     if (onlyElder && clients?.[0]) {
-      router.replace(`/kliendid/${clients[0].id}/abi`);
+      router.replace(withActor(`/kliendid/${clients[0].id}/abi`));
     }
-  }, [clients, onlyElder, router]);
+  }, [clients, onlyElder, router, withActor]);
 
   if (error) {
     return <p className="text-xl font-semibold text-[#9f1d1d]">{error}</p>;
@@ -71,7 +73,9 @@ export function ClientsList() {
         {clients.map((client) => (
           <Link
             key={client.id}
-            href={client.canCall && !client.canEdit ? `/kliendid/${client.id}/abi` : `/kliendid/${client.id}`}
+            href={withActor(
+              client.canCall && !client.canEdit ? `/kliendid/${client.id}/abi` : `/kliendid/${client.id}`,
+            )}
             className="block rounded-2xl bg-white px-5 py-4"
           >
             <span className="block text-2xl font-extrabold">{client.name}</span>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, ApiRequestError } from "./api";
 import { useSessionUserId } from "./app-shell";
+import { useWithActor } from "./use-with-actor";
 import { formatClock, formatWhen, outcomeLabel, statusLabel } from "./labels";
 
 type Profile = {
@@ -114,6 +115,7 @@ function ContactIncidentBanner({ clientId }: { clientId: string }) {
 
 export function ClientProfile({ clientId }: { clientId: string }) {
   const userId = useSessionUserId();
+  const withActor = useWithActor();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [address, setAddress] = useState("");
   const [accessNotes, setAccessNotes] = useState("");
@@ -208,7 +210,7 @@ export function ClientProfile({ clientId }: { clientId: string }) {
   return (
     <main className="flex flex-col gap-6">
       <div>
-        <Link className="text-base font-bold underline" href="/kliendid">
+        <Link className="text-base font-bold underline" href={withActor("/kliendid")}>
           Kliendid
         </Link>
         <h1 className="mt-2 text-3xl font-extrabold">{profile.elderName}</h1>
@@ -217,7 +219,7 @@ export function ClientProfile({ clientId }: { clientId: string }) {
         </div>
         <p className="mt-1 text-xl">{profile.municipalityName}</p>
         {profile.phone ? <p className="text-xl">{profile.phone}</p> : null}
-        <Link className="mt-3 inline-block text-xl font-bold underline" href={`/kliendid/${clientId}/abi`}>
+        <Link className="mt-3 inline-block text-xl font-bold underline" href={withActor(`/kliendid/${clientId}/abi`)}>
           Abi-vaade
         </Link>
       </div>
