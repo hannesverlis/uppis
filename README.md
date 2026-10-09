@@ -29,3 +29,9 @@ npm install
 cp .env.example .env.local   # demo PIN on 1234; Supabase võtmed on valikulised
 npm run dev
 ```
+
+## Testid
+- `npm test` käivitab ühiktestid üks kord.
+- `npm run test:watch` käivitab need iga salvestuse järel uuesti.
+- `npm run test:e2e` käivitab brauseritestid.
+- Testid kasutavad ajutist andmefaili (`UPPIS_DB_FILE`), mitte `data/demo-db.json` faili.

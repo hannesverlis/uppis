@@ -202,7 +202,7 @@ export function HelperQueue() {
   const closingItem = sorted.find((item) => item.id === closingId) ?? null;
 
   return (
-    <main>
+    <main className="flex flex-1 flex-col">
       <div className="mb-4 flex items-center justify-between gap-3">
         {embedded ? <h1 className="text-2xl font-bold">Kutsed</h1> : <span />}
         <StatusPill status="open" label={items ? String(items.length) : "…"} />
@@ -310,6 +310,10 @@ export function HelperQueue() {
           );
         })}
       </div>
+      <Card className="mt-auto bg-brand-soft">
+        <p className="text-base font-semibold text-brand">Oled meie väärtuslik partner</p>
+        <p className="mt-1 text-base">Eelmine kuu teenitud summa: <span className="font-bold tabular-nums">411 €</span></p>
+      </Card>
       {closingItem ? (
         <BottomSheet className="z-50" label="Lõpeta juhtum">
           <h2 className="text-xl font-bold">Lõpeta juhtum</h2>

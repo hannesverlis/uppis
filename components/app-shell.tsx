@@ -154,7 +154,7 @@ export function AppShell({
   return (
     <EmbeddedContext.Provider value={embedded}>
       <TitleContext.Provider value={setPageTitle}>
-        <div className="relative mx-auto min-h-dvh w-full max-w-[480px] bg-bg text-ink">
+        <div className="relative mx-auto flex min-h-dvh w-full max-w-[480px] flex-col bg-bg text-ink">
           {mapPage ? (
             <header className="pointer-events-none fixed inset-x-0 top-0 z-40 mx-auto flex w-full max-w-[480px] items-start justify-between p-4">
               {embedded ? (
@@ -186,7 +186,7 @@ export function AppShell({
             </header>
           )}
           <SessionUserContext.Provider value={actor ?? me?.id ?? null}>
-            <div className={mapPage ? "" : "px-5 pb-8"}>{children}</div>
+            <div className={mapPage ? "" : "flex flex-1 flex-col px-5 pb-8"}>{children}</div>
           </SessionUserContext.Provider>
           {mapPage ? null : (
             <footer className="border-t border-border px-5 py-4 text-base">

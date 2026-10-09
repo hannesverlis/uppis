@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { ID } from "@/backend/ids";
 import { Logo } from "./ui/logo";
@@ -143,9 +142,6 @@ export function DemoStage() {
           >
             {confirming ? "Kinnita lähtestamine" : "Lähtesta demo"}
           </button>
-          <Link className="inline-flex min-h-11 items-center rounded-pill px-3 text-sm font-semibold text-white underline-offset-4 hover:underline" href="/valik">
-            Ava eraldi
-          </Link>
         </div>
       </header>
       {error ? <p className="mt-2 text-sm font-semibold text-danger-soft">{error}</p> : null}
