@@ -8,6 +8,14 @@ const KEYS = [
   "onFloorOverHour",
 ] as const;
 
+export const CLEAR_TRIAGE: TriageAnswers = {
+  hitHead: false,
+  severePainOrCantMove: false,
+  bleeding: false,
+  breathingOrChestPain: false,
+  onFloorOverHour: false,
+};
+
 export function emptyTriage(): TriageAnswers {
   return {
     hitHead: null,

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { api, ApiRequestError } from "./api";
+import { CLEAR_TRIAGE } from "@/backend/triage";
 import { ArrivalClock, isArrivalLate } from "./arrival-clock";
 import { useSessionUserId } from "./app-shell";
 import { useWithActor } from "./use-with-actor";
@@ -119,14 +120,6 @@ function VoiceControl() {
     </>
   );
 }
-
-const CLEAR_TRIAGE = {
-  hitHead: false,
-  severePainOrCantMove: false,
-  bleeding: false,
-  breathingOrChestPain: false,
-  onFloorOverHour: false,
-};
 
 function Call112({ tall }: { tall?: boolean }) {
   return (
