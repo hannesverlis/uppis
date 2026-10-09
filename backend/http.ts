@@ -47,7 +47,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   const jar = await cookies();
   const id = ACTOR_RE.test(headerId) ? headerId : jar.get(USER_COOKIE)?.value;
   if (!id) return null;
-  return buildSession(readDb(), id);
+  return buildSession(await readDb(), id);
 }
 
 export async function requireUser(): Promise<SessionUser> {

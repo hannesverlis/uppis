@@ -5,5 +5,5 @@ export const dynamic = "force-dynamic";
 
 export const POST = apiRoute(async (_req, ctx) => {
   const { id } = await ctx.params;
-  return cancelIncident(await requireUser(), id);
+  return await cancelIncident(await requireUser(), id);
 });

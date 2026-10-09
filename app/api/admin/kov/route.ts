@@ -6,5 +6,5 @@ export const dynamic = "force-dynamic";
 export const GET = apiRoute(async () => {
   const user = await requireUser();
   await requireAdminPin(user);
-  return getKov(user);
+  return await getKov(user);
 });

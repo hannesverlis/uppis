@@ -5,10 +5,10 @@ export const dynamic = "force-dynamic";
 
 export const POST = apiRoute(async (req, ctx) => {
   const { id } = await ctx.params;
-  return addHelper(await requireUser(), id, await readJson(req));
+  return await addHelper(await requireUser(), id, await readJson(req));
 });
 
 export const DELETE = apiRoute(async (req, ctx) => {
   const { id } = await ctx.params;
-  return removeHelper(await requireUser(), id, await readJson(req));
+  return await removeHelper(await requireUser(), id, await readJson(req));
 });

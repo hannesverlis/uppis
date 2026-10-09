@@ -3,4 +3,4 @@ import { getQueue } from "@/backend/service";
 
 export const dynamic = "force-dynamic";
 
-export const GET = apiRoute(async () => getQueue(await requireUser()));
+export const GET = apiRoute(async () => await getQueue(await requireUser()));

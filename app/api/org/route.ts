@@ -3,4 +3,4 @@ import { getOrg } from "@/backend/service";
 
 export const dynamic = "force-dynamic";
 
-export const GET = apiRoute(async () => getOrg(await requireUser()));
+export const GET = apiRoute(async () => await getOrg(await requireUser()));

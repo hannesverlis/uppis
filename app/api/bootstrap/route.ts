@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const GET = apiRoute(async () => {
   const me = await getSessionUser();
   return {
-    users: listSwitcherUsers(),
+    users: await listSwitcherUsers(),
     me: sessionPayload(me),
   };
 });

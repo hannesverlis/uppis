@@ -127,8 +127,8 @@ function publicUser(db: Db, user: User) {
   };
 }
 
-export function listSwitcherUsers() {
-  const db = readDb();
+export async function listSwitcherUsers() {
+  const db = await readDb();
   const rank = new Map<string, number>();
   DEMO_USER_ORDER.forEach((id, index) => rank.set(id, index));
   return db.users
@@ -148,15 +148,15 @@ export function sessionPayload(user: SessionUser | null) {
   };
 }
 
-export function chooseUser(userId: string | null) {
+export async function chooseUser(userId: string | null) {
   if (!userId) return { me: null, redirectTo: "/" };
-  const user = buildSession(readDb(), userId);
+  const user = buildSession(await readDb(), userId);
   if (!user) throw new ApiError("Kasutajat ei leitud", 404, "NOT_FOUND");
   return { me: sessionPayload(user), redirectTo: homeFor(user) };
 }
 
-export function listClients(user: SessionUser) {
-  const db = readDb();
+export async function listClients(user: SessionUser) {
+  const db = await readDb();
   return db.clients
     .filter((client) => can(user, "view_client", resourceForClient(client)))
     .map((client) => ({
@@ -175,8 +175,8 @@ function relationLabel(db: Db, client: Client, user: SessionUser) {
   return db.clientContacts.find((item) => item.clientId === client.id && item.userId === user.id)?.relation ?? "";
 }
 
-export function getHelpView(user: SessionUser, clientId: string) {
-  const db = readDb();
+export async function getHelpView(user: SessionUser, clientId: string) {
+  const db = await readDb();
   const client = clientById(db, clientId);
   assertCan(user, "view_client", resourceForClient(client));
   const active = activeFor(db, client.id);
@@ -203,8 +203,8 @@ export function getHelpView(user: SessionUser, clientId: string) {
   };
 }
 
-export function getClientProfile(user: SessionUser, clientId: string) {
-  const db = readDb();
+export async function getClientProfile(user: SessionUser, clientId: string) {
+  const db = await readDb();
   const client = clientById(db, clientId);
   const resource = resourceForClient(client);
   assertCan(user, "view_client", resource);
@@ -269,8 +269,8 @@ function helperOptions(db: Db) {
   };
 }
 
-export function updateClient(user: SessionUser, clientId: string, body: Record<string, unknown>) {
-  updateDb((db) => {
+export async function updateClient(user: SessionUser, clientId: string, body: Record<string, unknown>) {
+  await updateDb((db) => {
     const session = buildSession(db, user.id);
     if (!session) throw new ApiError("Vali demokasutaja", 401, "AUTH");
     const client = clientById(db, clientId);
@@ -285,15 +285,15 @@ export function updateClient(user: SessionUser, clientId: string, body: Record<s
       client.kovConsent = body.kovConsent === true;
     }
   });
-  return getClientProfile(buildSession(readDb(), user.id)!, clientId);
+  return await getClientProfile(buildSession(await readDb(), user.id)!, clientId);
 }
 
-export function addHelper(user: SessionUser, clientId: string, body: Record<string, unknown>) {
+export async function addHelper(user: SessionUser, clientId: string, body: Record<string, unknown>) {
   const helperUserId = text(body.userId, 80) || null;
   const organizationId = text(body.organizationId, 80) || null;
   if (!helperUserId && !organizationId) throw new ApiError("Vali täitja või organisatsioon", 400, "VALIDATION");
 
-  updateDb((db) => {
+  await updateDb((db) => {
     const session = buildSession(db, user.id);
     if (!session) throw new ApiError("Vali demokasutaja", 401, "AUTH");
     const client = clientById(db, clientId);
@@ -319,13 +319,13 @@ export function addHelper(user: SessionUser, clientId: string, body: Record<stri
       priority,
     });
   });
-  return getClientProfile(buildSession(readDb(), user.id)!, clientId);
+  return await getClientProfile(buildSession(await readDb(), user.id)!, clientId);
 }
 
-export function removeHelper(user: SessionUser, clientId: string, body: Record<string, unknown>) {
+export async function removeHelper(user: SessionUser, clientId: string, body: Record<string, unknown>) {
   const helperUserId = text(body.userId, 80) || null;
   const organizationId = text(body.organizationId, 80) || null;
-  updateDb((db) => {
+  await updateDb((db) => {
     const session = buildSession(db, user.id);
     if (!session) throw new ApiError("Vali demokasutaja", 401, "AUTH");
     const client = clientById(db, clientId);
@@ -337,16 +337,16 @@ export function removeHelper(user: SessionUser, clientId: string, body: Record<s
       return true;
     });
   });
-  return getClientProfile(buildSession(readDb(), user.id)!, clientId);
+  return await getClientProfile(buildSession(await readDb(), user.id)!, clientId);
 }
 
-export function createIncident(user: SessionUser, clientId: string, body: Record<string, unknown>) {
+export async function createIncident(user: SessionUser, clientId: string, body: Record<string, unknown>) {
   const triage = parseTriage(body.triage);
   const emergency = needsEmergency(triage);
   let incidentId = "";
   let status: IncidentStatus = emergency ? "escalated_112" : "open";
 
-  updateDb((db) => {
+  await updateDb((db) => {
     const session = buildSession(db, user.id);
     if (!session) throw new ApiError("Vali demokasutaja", 401, "AUTH");
     const client = clientById(db, clientId);
@@ -378,8 +378,8 @@ export function createIncident(user: SessionUser, clientId: string, body: Record
   return { incidentId, status, emergency: status === "escalated_112" };
 }
 
-export function cancelIncident(user: SessionUser, incidentId: string) {
-  updateDb((db) => {
+export async function cancelIncident(user: SessionUser, incidentId: string) {
+  await updateDb((db) => {
     const session = buildSession(db, user.id);
     if (!session) throw new ApiError("Vali demokasutaja", 401, "AUTH");
     const incident = incidentById(db, incidentId);
@@ -391,8 +391,8 @@ export function cancelIncident(user: SessionUser, incidentId: string) {
     incident.status = "cancelled";
     incident.resolvedAt = new Date().toISOString();
   });
-  const incident = incidentById(readDb(), incidentId);
-  return getHelpView(buildSession(readDb(), user.id)!, incident.clientId);
+  const incident = incidentById(await readDb(), incidentId);
+  return await getHelpView(buildSession(await readDb(), user.id)!, incident.clientId);
 }
 
 function cancelNoticeFor(incident: Incident, userId: string) {
@@ -421,9 +421,9 @@ function incidentSummary(db: Db, incident: Incident) {
   };
 }
 
-export function getQueue(user: SessionUser) {
+export async function getQueue(user: SessionUser) {
   assertCan(user, "view_queue");
-  const db = readDb();
+  const db = await readDb();
   const ids = new Set([...user.helperClientIds, ...user.orgClientIds]);
   return db.incidents
     .filter((item) => ids.has(item.clientId) && (ACTIVE.includes(item.status) || cancelNoticeFor(item, user.id)))
@@ -435,8 +435,8 @@ export function getQueue(user: SessionUser) {
     .map((item) => incidentSummary(db, item));
 }
 
-export function getIncident(user: SessionUser, incidentId: string) {
-  const db = readDb();
+export async function getIncident(user: SessionUser, incidentId: string) {
+  const db = await readDb();
   const incident = incidentById(db, incidentId);
   const client = clientById(db, incident.clientId);
   const resource = resourceForIncident(incident, client);
@@ -472,10 +472,10 @@ function assigneeOptions(db: Db, clientId: string, organizationId: string | null
   return [...ids].map((id) => ({ id, name: nameOf(db, id) })).filter((item) => item.name);
 }
 
-export function acceptIncident(user: SessionUser, incidentId: string, body: Record<string, unknown>) {
+export async function acceptIncident(user: SessionUser, incidentId: string, body: Record<string, unknown>) {
   const eta = Number(body.etaMin);
   if (!ETA.has(eta)) throw new ApiError("Vali 5, 10, 20 või 40 minutit", 400, "VALIDATION");
-  updateDb((db) => {
+  await updateDb((db) => {
     const session = buildSession(db, user.id);
     if (!session) throw new ApiError("Vali demokasutaja", 401, "AUTH");
     const incident = incidentById(db, incidentId);
@@ -493,11 +493,11 @@ export function acceptIncident(user: SessionUser, incidentId: string, body: Reco
     incident.acceptedAt = new Date().toISOString();
     incident.arrivedAt = null;
   });
-  return getIncident(buildSession(readDb(), user.id)!, incidentId);
+  return await getIncident(buildSession(await readDb(), user.id)!, incidentId);
 }
 
-export function markArrived(user: SessionUser, incidentId: string) {
-  updateDb((db) => {
+export async function markArrived(user: SessionUser, incidentId: string) {
+  await updateDb((db) => {
     const session = buildSession(db, user.id);
     if (!session) throw new ApiError("Vali demokasutaja", 401, "AUTH");
     const incident = incidentById(db, incidentId);
@@ -506,15 +506,15 @@ export function markArrived(user: SessionUser, incidentId: string) {
     incident.status = "helper_arrived";
     incident.arrivedAt = new Date().toISOString();
   });
-  return getIncident(buildSession(readDb(), user.id)!, incidentId);
+  return await getIncident(buildSession(await readDb(), user.id)!, incidentId);
 }
 
-export function closeIncident(user: SessionUser, incidentId: string, body: Record<string, unknown>) {
+export async function closeIncident(user: SessionUser, incidentId: string, body: Record<string, unknown>) {
   const outcome = text(body.outcome, 40);
   if (outcome !== "helped_up" && outcome !== "called_112" && outcome !== "other") {
     throw new ApiError("Vali tulemus", 400, "VALIDATION");
   }
-  updateDb((db) => {
+  await updateDb((db) => {
     const session = buildSession(db, user.id);
     if (!session) throw new ApiError("Vali demokasutaja", 401, "AUTH");
     const incident = incidentById(db, incidentId);
@@ -525,14 +525,14 @@ export function closeIncident(user: SessionUser, incidentId: string, body: Recor
     incident.outcomeNote = text(body.outcomeNote, 500) || null;
     incident.resolvedAt = new Date().toISOString();
   });
-  return getIncident(buildSession(readDb(), user.id)!, incidentId);
+  return await getIncident(buildSession(await readDb(), user.id)!, incidentId);
 }
 
-export function assignIncident(user: SessionUser, incidentId: string, body: Record<string, unknown>) {
+export async function assignIncident(user: SessionUser, incidentId: string, body: Record<string, unknown>) {
   const helperUserId = text(body.helperUserId, 80);
   const eta = Number(body.etaMin ?? 10);
   if (!ETA.has(eta)) throw new ApiError("Vali 5, 10, 20 või 40 minutit", 400, "VALIDATION");
-  updateDb((db) => {
+  await updateDb((db) => {
     const session = buildSession(db, user.id);
     if (!session) throw new ApiError("Vali demokasutaja", 401, "AUTH");
     const incident = incidentById(db, incidentId);
@@ -546,12 +546,12 @@ export function assignIncident(user: SessionUser, incidentId: string, body: Reco
     incident.arrivedAt = null;
     incident.status = "helper_on_way";
   });
-  return getIncident(buildSession(readDb(), user.id)!, incidentId);
+  return await getIncident(buildSession(await readDb(), user.id)!, incidentId);
 }
 
-export function getOrg(user: SessionUser) {
+export async function getOrg(user: SessionUser) {
   assertCan(user, "view_org");
-  const db = readDb();
+  const db = await readDb();
   const org = db.organizations.find((item) => item.id === user.organizationId);
   const workers = db.users
     .filter((item) => item.organizationId === user.organizationId)
@@ -584,8 +584,8 @@ function municipalityClients(db: Db, user: SessionUser) {
   });
 }
 
-export function getOverview(user: SessionUser) {
-  const db = readDb();
+export async function getOverview(user: SessionUser) {
+  const db = await readDb();
   const visible = kovClients(db, user).map((item) => item.id);
   const since = Date.now() - 30 * 24 * 60 * 60 * 1000;
   return {
@@ -602,9 +602,9 @@ export function getOverview(user: SessionUser) {
   };
 }
 
-export function listAdminUsers(user: SessionUser) {
+export async function listAdminUsers(user: SessionUser) {
   assertCan(user, "admin_system");
-  const db = readDb();
+  const db = await readDb();
   return {
     roles: ROLES,
     users: db.users.map((item) => ({
@@ -618,7 +618,7 @@ export function listAdminUsers(user: SessionUser) {
   };
 }
 
-export function createUser(actor: SessionUser, body: Record<string, unknown>) {
+export async function createUser(actor: SessionUser, body: Record<string, unknown>) {
   assertCan(actor, "admin_system");
   const name = text(body.name, 80);
   const phone = text(body.phone, 40) || null;
@@ -626,7 +626,7 @@ export function createUser(actor: SessionUser, body: Record<string, unknown>) {
   if (!name) throw new ApiError("Nimi on kohustuslik", 400, "VALIDATION");
   if (!ROLES.includes(role)) throw new ApiError("Tundmatu roll", 400, "VALIDATION");
   const id = randomUUID();
-  updateDb((db) => {
+  await updateDb((db) => {
     db.users.push({
       id,
       name,
@@ -639,14 +639,14 @@ export function createUser(actor: SessionUser, body: Record<string, unknown>) {
   return { id };
 }
 
-export function changeRole(actor: SessionUser, userId: string, body: Record<string, unknown>) {
+export async function changeRole(actor: SessionUser, userId: string, body: Record<string, unknown>) {
   assertCan(actor, "admin_system");
   const role = text(body.role, 40) as Role;
   const op = text(body.op, 10);
   if (!ROLES.includes(role)) throw new ApiError("Tundmatu roll", 400, "VALIDATION");
   if (op !== "add" && op !== "remove") throw new ApiError("Tundmatu toiming", 400, "VALIDATION");
 
-  updateDb((db) => {
+  await updateDb((db) => {
     if (!db.users.some((item) => item.id === userId)) throw new ApiError("Kasutajat ei leitud", 404, "NOT_FOUND");
     if (op === "add") {
       if (!db.userRoles.some((item) => item.userId === userId && item.role === role)) {
@@ -666,12 +666,12 @@ export function changeRole(actor: SessionUser, userId: string, body: Record<stri
     }
     db.userRoles = next;
   });
-  return listAdminUsers(buildSession(readDb(), actor.id)!);
+  return await listAdminUsers(buildSession(await readDb(), actor.id)!);
 }
 
-export function listAdminClients(user: SessionUser) {
+export async function listAdminClients(user: SessionUser) {
   assertCan(user, "admin_system");
-  const db = readDb();
+  const db = await readDb();
   return db.clients.map((client) => ({
     id: client.id,
     name: nameOf(db, client.elderUserId),
@@ -703,11 +703,11 @@ function repeatFallers(db: Db, user: SessionUser, clients = kovClients(db, user)
     }));
 }
 
-export function getKov(user: SessionUser) {
+export async function getKov(user: SessionUser) {
   if (!can(user, "view_kov") && !user.roles.includes("admin_system")) {
     throw new ApiError("Puudub õigus", 403, "FORBIDDEN");
   }
-  const db = readDb();
+  const db = await readDb();
   const clients = municipalityClients(db, user);
   const allowed = new Set(clients.map((item) => item.id));
   const consent = new Map(clients.map((item) => [item.id, item.kovConsent]));
@@ -718,12 +718,12 @@ export function getKov(user: SessionUser) {
   return { repeatFallers: repeatFallers(db, user, clients), incidents };
 }
 
-export function markKov(user: SessionUser, incidentId: string, body: Record<string, unknown>) {
+export async function markKov(user: SessionUser, incidentId: string, body: Record<string, unknown>) {
   const kovStatus = text(body.kovStatus, 20) as KovStatus;
   if (kovStatus !== "new" && kovStatus !== "in_progress" && kovStatus !== "done") {
     throw new ApiError("Tundmatu olek", 400, "VALIDATION");
   }
-  updateDb((db) => {
+  await updateDb((db) => {
     const session = buildSession(db, user.id);
     if (!session) throw new ApiError("Vali demokasutaja", 401, "AUTH");
     const incident = incidentById(db, incidentId);
@@ -734,8 +734,8 @@ export function markKov(user: SessionUser, incidentId: string, body: Record<stri
   return { ok: true };
 }
 
-export function resetDemo(user: SessionUser) {
+export async function resetDemo(user: SessionUser) {
   assertCan(user, "admin_system");
-  resetDb();
+  await resetDb();
   return { ok: true };
 }

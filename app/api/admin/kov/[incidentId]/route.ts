@@ -7,5 +7,5 @@ export const POST = apiRoute(async (req, ctx) => {
   const user = await requireUser();
   await requireAdminPin(user);
   const { incidentId } = await ctx.params;
-  return markKov(user, incidentId, await readJson(req));
+  return await markKov(user, incidentId, await readJson(req));
 });

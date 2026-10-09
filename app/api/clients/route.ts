@@ -3,4 +3,4 @@ import { listClients } from "@/backend/service";
 
 export const dynamic = "force-dynamic";
 
-export const GET = apiRoute(async () => listClients(await requireUser()));
+export const GET = apiRoute(async () => await listClients(await requireUser()));
