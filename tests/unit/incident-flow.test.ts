@@ -162,9 +162,7 @@ describe("koordinaator", () => {
     expect(storedIncident(incidentId).helperUserId).toBe(ID.liis);
   });
 
-  // assignIncident treats every personally linked helper as assignable, so a
-  // coordinator can send Jüri even though he is not an organization employee.
-  it.fails("keeldub Jüri määramisest, sest ta ei ole organisatsiooni töötaja", () => {
+  it("keeldub Jüri määramisest, sest ta ei ole organisatsiooni töötaja", () => {
     const { incidentId } = callHelp();
     expectApiError(() => assignIncident(as(ID.peeter), incidentId, { helperUserId: ID.juri, etaMin: 10 }), 400);
   });

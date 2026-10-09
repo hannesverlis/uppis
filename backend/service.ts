@@ -459,10 +459,10 @@ export function getIncident(user: SessionUser, incidentId: string) {
 
 function assigneeOptions(db: Db, clientId: string, organizationId: string | null) {
   const ids = new Set<string>();
-  for (const helper of db.clientHelpers) {
-    if (helper.clientId === clientId && helper.userId) ids.add(helper.userId);
-  }
-  if (organizationId) {
+  const orgHelpsThisClient = db.clientHelpers.some(
+    (item) => item.clientId === clientId && item.organizationId === organizationId,
+  );
+  if (organizationId && orgHelpsThisClient) {
     for (const person of db.users) {
       if (person.organizationId !== organizationId) continue;
       const roles = rolesOf(db, person.id);
