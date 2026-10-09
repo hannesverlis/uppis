@@ -106,7 +106,8 @@ function publicUser(db: Db, user: User) {
 
 export function listSwitcherUsers() {
   const db = readDb();
-  const rank = new Map(DEMO_USER_ORDER.map((id, index) => [id, index]));
+  const rank = new Map<string, number>();
+  DEMO_USER_ORDER.forEach((id, index) => rank.set(id, index));
   return db.users
     .map((user) => publicUser(db, user))
     .sort((a, b) => (rank.get(a.id) ?? 99) - (rank.get(b.id) ?? 99));
