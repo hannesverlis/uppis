@@ -179,6 +179,9 @@ export function HelpPanel({ clientId }: { clientId: string }) {
           <p className="text-2xl font-extrabold leading-snug">
             {active.waitingLong ? "Keegi ei ole veel kutset vastu võtnud." : "Kutse on saadetud. Ootame abistajat."}
           </p>
+          {active.waitingLong ? (
+            <p className="text-3xl font-extrabold text-[#9f1d1d]">Helista 112</p>
+          ) : null}
           <Call112 tall />
           {view.canCancel ? (
             <button

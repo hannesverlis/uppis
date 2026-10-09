@@ -414,6 +414,7 @@ function incidentSummary(db: Db, incident: Incident) {
     acceptedAt: incident.acceptedAt ?? null,
     arrivedAt: incident.arrivedAt ?? null,
     waitingLong: isWaitingLong(incident),
+    waitingTooLong: isWaitingLong(incident),
     outcome: incident.outcome,
     kovStatus: incident.kovStatus,
   };
@@ -425,7 +426,11 @@ export function getQueue(user: SessionUser) {
   const ids = new Set([...user.helperClientIds, ...user.orgClientIds]);
   return db.incidents
     .filter((item) => ids.has(item.clientId) && (ACTIVE.includes(item.status) || cancelNoticeFor(item, user.id)))
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .sort((a, b) => {
+      const late = Number(isWaitingLong(b)) - Number(isWaitingLong(a));
+      if (late !== 0) return late;
+      return b.createdAt.localeCompare(a.createdAt);
+    })
     .map((item) => incidentSummary(db, item));
 }
 

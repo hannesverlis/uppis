@@ -26,6 +26,7 @@ type IncidentDetail = QueueItem & {
   canAccept: boolean;
   canMarkArrived: boolean;
   canClose: boolean;
+  waitingTooLong: boolean;
 };
 
 const ETA_MINUTES = [5, 10, 20, 40];
@@ -39,7 +40,7 @@ function elapsedText(from: string, now: number) {
   return hours > 0 ? `${hours}:${clock}` : clock;
 }
 
-function RequestClock({ from }: { from: string }) {
+function RequestClock({ from, late }: { from: string; late?: boolean }) {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -48,7 +49,7 @@ function RequestClock({ from }: { from: string }) {
   }, []);
 
   return (
-    <p className="text-4xl font-extrabold tabular-nums" aria-live="polite">
+    <p className={`text-4xl font-extrabold tabular-nums ${late ? "text-[#9f1d1d]" : ""}`} aria-live="polite">
       {elapsedText(from, now)}
     </p>
   );
@@ -173,9 +174,15 @@ export function HelperQueue() {
               <p className="text-2xl font-extrabold leading-snug">Kutse tühistati abisaaja poolt</p>
             </article>
           ) : (
-          <article key={item.id} className="rounded-2xl bg-white px-5 py-4">
+          <article
+            key={item.id}
+            className={`rounded-2xl bg-white px-5 py-4 ${item.waitingTooLong ? "border-4 border-[#9f1d1d]" : ""}`}
+          >
+            {item.waitingTooLong ? (
+              <p className="mb-2 text-xl font-extrabold text-[#9f1d1d]">Ootab üle 10 min – keegi pole vastu võtnud</p>
+            ) : null}
             <p className="text-base font-semibold">Abipalvest</p>
-            <RequestClock from={item.createdAt} />
+            <RequestClock from={item.createdAt} late={item.waitingTooLong} />
             <h2 className="mt-3 text-2xl font-extrabold">{item.clientName}</h2>
             <p className="mt-1 text-xl">{item.address}</p>
             <p className="text-xl">{item.municipalityName}</p>
