@@ -5,6 +5,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { withActor } from "./actor-link";
 import { roleList } from "./roles";
+import { Avatar } from "./ui/avatar";
+import { BottomSheet } from "./ui/bottom-sheet";
+import { ListRow } from "./ui/list-row";
+import { Logo } from "./ui/logo";
 
 type SwitcherUser = {
   id: string;
@@ -19,16 +23,24 @@ type Me = {
 };
 
 const SessionUserContext = createContext<string | null>(null);
+const EmbeddedContext = createContext(false);
+const TitleContext = createContext<(value: string | null) => void>(() => undefined);
 
 export function useSessionUserId() {
   return useContext(SessionUserContext);
 }
 
-const NAV = [
-  { href: "/kliendid", label: "Kliendid" },
-  { href: "/taitjad", label: "Täitjad" },
-  { href: "/admin", label: "Admin" },
-] as const;
+export function useEmbedded() {
+  return useContext(EmbeddedContext);
+}
+
+export function usePageTitle(title: string | null) {
+  const setTitle = useContext(TitleContext);
+  useEffect(() => {
+    setTitle(title);
+    return () => setTitle(null);
+  }, [setTitle, title]);
+}
 
 export type ShellTone = "client" | "helper" | "admin";
 
@@ -37,6 +49,15 @@ const TONE_LABEL: Record<ShellTone, string> = {
   helper: "Täitja",
   admin: "Admin",
 };
+
+function fallbackTitle(pathname: string) {
+  if (pathname === "/taitjad" || pathname.startsWith("/taitjad/")) return "Kutsed";
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return "Admin";
+  if (pathname === "/kliendid") return "Kliendid";
+  if (pathname === "/valik") return "Vali osa";
+  if (/^\/kliendid\/[^/]+$/.test(pathname)) return "Profiil";
+  return "Uppis";
+}
 
 export function AppShell({
   children,
@@ -54,6 +75,8 @@ export function AppShell({
   const [ready, setReady] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [open, setOpen] = useState(false);
+  const [pageTitle, setPageTitle] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const response = await fetch("/api/bootstrap", {
@@ -92,6 +115,7 @@ export function AppShell({
       if (!response.ok) throw new Error("session");
       const data = (await response.json()) as { me: Me | null };
       setMe(data.me);
+      setOpen(false);
       router.refresh();
     } catch {
       setError("Kasutaja valik ei õnnestunud.");
@@ -107,87 +131,95 @@ export function AppShell({
     : helperView
       ? users.filter((user) => user.roles.some((role) => role.startsWith("helper_")))
       : users;
-  const menuValue = menuUsers.some((user) => user.id === me?.id) ? (me?.id ?? "") : "";
   const menuLabel = clientView ? "Vali abivajaja" : helperView ? "Vali abistaja" : "Vali demokasutaja";
-  const emptyLabel = clientView
-    ? "Abivajajat pole valitud"
-    : helperView
-      ? "Abistajat pole valitud"
-      : "Kasutajat pole valitud";
-
   const embedded = Boolean(actor);
+  const mapPage = /^\/kliendid\/[^/]+\/abi$/.test(pathname);
+  const title = pageTitle || fallbackTitle(pathname);
+
+  const avatar = (
+    <button
+      type="button"
+      className="flex h-11 w-11 items-center justify-center bg-white shadow-card disabled:opacity-40"
+      style={{ borderRadius: "var(--radius-icon)" }}
+      aria-label={me ? me.name : menuLabel}
+      disabled={!ready || saving}
+      onClick={() => {
+        if (!embedded) setOpen(true);
+      }}
+    >
+      <Avatar name={me?.name ?? "?"} size={32} />
+    </button>
+  );
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-lg flex-col bg-bg px-4 text-ink">
-      <header className="py-4">
-        <p className="text-sm font-semibold uppercase tracking-wide text-brand">
-          {embedded ? (
-            "Uppis"
+    <EmbeddedContext.Provider value={embedded}>
+      <TitleContext.Provider value={setPageTitle}>
+        <div className="relative mx-auto min-h-dvh w-full max-w-[480px] bg-bg text-ink">
+          {mapPage ? (
+            <header className="pointer-events-none fixed inset-x-0 top-0 z-40 mx-auto flex w-full max-w-[480px] items-start justify-between p-4">
+              {embedded ? (
+                <span />
+              ) : (
+                <Link
+                  href={withActor("/", actor, tone)}
+                  className="pointer-events-auto flex h-11 w-11 items-center justify-center bg-white shadow-card"
+                  style={{ borderRadius: "var(--radius-icon)" }}
+                  aria-label="Uppis"
+                >
+                  <Logo variant="icon" height={28} />
+                </Link>
+              )}
+              <div className="pointer-events-auto">{avatar}</div>
+            </header>
           ) : (
-            <Link href={withActor("/", actor, tone)} className="text-inherit">
-              Uppis
-            </Link>
+            <header className="flex items-start justify-between gap-3 px-5 pb-2 pt-4">
+              <div className="min-w-0">
+                {embedded ? null : <Logo variant="light" height={28} />}
+                {embedded ? null : <h1 className="mt-3 text-2xl font-bold">{title}</h1>}
+                {embedded ? null : (
+                  <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                    {me ? roleList(me.roles) : tone ? TONE_LABEL[tone] : "Demo"}
+                  </p>
+                )}
+              </div>
+              {avatar}
+            </header>
           )}
-        </p>
-        {tone ? (
-          <p className="mt-1 inline-flex rounded-pill bg-surface px-2 py-0.5 text-xs font-semibold text-ink-muted">
-            {TONE_LABEL[tone]}
-          </p>
-        ) : null}
-        {embedded ? (
-          <p className="mt-2 text-2xl font-extrabold">{me ? me.name : "…"}</p>
-        ) : null}
-        {embedded ? null : (
-        <nav aria-label="Põhimenüü" className="mt-3 grid grid-cols-3 gap-2">
-          {NAV.map((item) => {
-            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-            return (
-              <Link
-                key={item.href}
-                href={withActor(item.href, actor, tone)}
-                aria-current={active ? "page" : undefined}
-                className={`inline-flex min-h-14 items-center justify-center rounded-2xl px-2 text-center text-lg font-bold ${
-                  active ? "bg-brand text-white" : "bg-surface text-ink"
-                }`}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-        )}
-        {embedded ? null : (
-        <>
-        <label className="mt-4 block text-base font-semibold" htmlFor="demo-user">
-          {menuLabel}
-        </label>
-        <select
-          id="demo-user"
-          className="mt-2 min-h-16 w-full rounded-2xl border-2 border-ink bg-bg px-3 text-xl"
-          value={menuValue}
-          disabled={!ready || saving}
-          onChange={(event) => onUserChange(event.target.value)}
-        >
-          <option value="">{emptyLabel}</option>
-          {menuUsers.map((user) => (
-            <option key={user.id} value={user.id}>
-              {user.name} — {roleList(user.roles)}
-            </option>
-          ))}
-        </select>
-        <p className="mt-2 text-base" aria-live="polite">
-          {me ? `Oled: ${me.name} · ${roleList(me.roles)}` : "Kedagi pole valitud."}
-        </p>
-        {error ? <p className="mt-2 text-base font-semibold text-danger">{error}</p> : null}
-        </>
-        )}
-      </header>
-      <SessionUserContext.Provider value={actor ?? me?.id ?? null}>
-        <div className="flex-1 pb-8">{children}</div>
-      </SessionUserContext.Provider>
-      <footer className="border-t border-border py-4 text-base">
-        Demo. Hädaohu korral helista <a className="font-bold text-danger underline" href="tel:112">112</a>.
-      </footer>
-    </div>
+          <SessionUserContext.Provider value={actor ?? me?.id ?? null}>
+            <div className={mapPage ? "" : "px-5 pb-8"}>{children}</div>
+          </SessionUserContext.Provider>
+          {mapPage ? null : (
+            <footer className="border-t border-border px-5 py-4 text-base">
+              Demo. Hädaohu korral helista{" "}
+              <a className="font-bold text-danger underline" href="tel:112">
+                112
+              </a>
+              .
+            </footer>
+          )}
+          {open ? (
+            <BottomSheet label={menuLabel} className="z-50">
+              <h2 className="text-xl font-bold">{menuLabel}</h2>
+              <div className="mt-2">
+                {menuUsers.map((user) => (
+                  <ListRow
+                    key={user.id}
+                    leading={<Avatar name={user.name} size={40} />}
+                    title={user.name}
+                    subtitle={roleList(user.roles)}
+                    onClick={() => void onUserChange(user.id)}
+                  />
+                ))}
+              </div>
+              {menuUsers.length === 0 ? <p className="py-3 text-ink-muted">Kedagi pole valitud.</p> : null}
+              {error ? <p className="mt-2 font-semibold text-danger">{error}</p> : null}
+              <button type="button" className="mt-3 min-h-11 text-base font-semibold text-brand" onClick={() => setOpen(false)}>
+                Sulge
+              </button>
+            </BottomSheet>
+          ) : null}
+        </div>
+      </TitleContext.Provider>
+    </EmbeddedContext.Provider>
   );
 }
