@@ -13,6 +13,9 @@ Tervisehäkaton 2026 prototüüp: kodus kukkunud eakas saab kiiresti mitte-medit
 - [docs/MOCK_ANDMED.md](docs/MOCK_ANDMED.md) — abivajajate ja töötajate profiilid, mock-andmed (viimane faas)
 - [docs/TAUST.md](docs/TAUST.md) — numbrid ja allikas pitch'i jaoks
 
+## Avaleht
+Avaleht `/` on kolme telefoni demo: abisaaja, täitja ja lähedane ühel ekraanil. Üksikud vaated (Kliendid, Täitjad, Admin) on aadressil `/valik`. Vana aadress `/demo` suunab avalehele.
+
 ## Ülesehitus
 - `backend/` — äriloogika, õigused, triaaž ja demoandmed
 - `app/api/` — HTTP API, mida kasutajaliides kutsub
