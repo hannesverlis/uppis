@@ -21,6 +21,7 @@ type HelpView = {
     outcomeNote: string | null;
     waitingLong: boolean;
   } | null;
+  finished: { id: string; status: string; outcome: string | null; resolvedAt: string } | null;
 };
 
 const CLEAR_TRIAGE = {
@@ -49,6 +50,7 @@ export function HelpPanel({ clientId }: { clientId: string }) {
   const [view, setView] = useState<HelpView | null>(null);
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
+  const [showFarewell, setShowFarewell] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,6 +77,22 @@ export function HelpPanel({ clientId }: { clientId: string }) {
       window.clearInterval(timer);
     };
   }, [clientId, userId]);
+
+  useEffect(() => {
+    const finished = view?.finished;
+    if (!finished || view?.active) {
+      setShowFarewell(false);
+      return;
+    }
+    const left = new Date(finished.resolvedAt).getTime() + 10_000 - Date.now();
+    if (left <= 0) {
+      setShowFarewell(false);
+      return;
+    }
+    setShowFarewell(true);
+    const timer = window.setTimeout(() => setShowFarewell(false), left);
+    return () => window.clearTimeout(timer);
+  }, [view?.active, view?.finished]);
 
   async function callHelper() {
     setSending(true);
@@ -106,7 +124,7 @@ export function HelpPanel({ clientId }: { clientId: string }) {
   return (
     <main>
       <h1 className="text-4xl font-extrabold">{view.clientName}</h1>
-      {!active && view.canCall ? (
+      {!active && view.canCall && !showFarewell ? (
         <div className="mt-6 flex flex-col gap-3">
           <button
             className="min-h-24 rounded-2xl bg-[#0c6b52] px-5 text-2xl font-bold text-white disabled:opacity-60"
@@ -136,6 +154,10 @@ export function HelpPanel({ clientId }: { clientId: string }) {
           <ArrivalClock from={active.acceptedAt || active.createdAt} minutes={active.helperEtaMin ?? 0} />
           <Call112 />
         </div>
+      ) : null}
+
+      {showFarewell && !active ? (
+        <p className="mt-6 text-2xl font-extrabold leading-snug">Abi on lõpetatud. Hoia end!</p>
       ) : null}
 
       {active?.status === "escalated_112" ? (

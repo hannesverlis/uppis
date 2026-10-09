@@ -20,6 +20,7 @@ import { ROLES } from "./types";
 
 const ACTIVE: IncidentStatus[] = ["open", "escalated_112", "helper_on_way"];
 const WAIT_MS = 10 * 60 * 1000;
+const FINISHED_MS = 10 * 1000;
 const ETA = new Set([5, 10, 20, 40]);
 
 function userById(db: Db, id: string | null | undefined) {
@@ -94,6 +95,26 @@ function activeFor(db: Db, clientId: string) {
 
 function isWaitingLong(incident: Incident) {
   return incident.status === "open" && Date.now() - new Date(incident.createdAt).getTime() > WAIT_MS;
+}
+
+function latestFor(db: Db, clientId: string) {
+  return (
+    db.incidents
+      .filter((item) => item.clientId === clientId)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0] ?? null
+  );
+}
+
+function recentResolved(db: Db, clientId: string) {
+  const latest = latestFor(db, clientId);
+  if (!latest || latest.status !== "resolved" || !latest.resolvedAt) return null;
+  if (Date.now() - new Date(latest.resolvedAt).getTime() > FINISHED_MS) return null;
+  return {
+    id: latest.id,
+    status: latest.status,
+    outcome: latest.outcome,
+    resolvedAt: latest.resolvedAt,
+  };
 }
 
 function publicUser(db: Db, user: User) {
@@ -174,6 +195,7 @@ export function getHelpView(user: SessionUser, clientId: string) {
           waitingLong: isWaitingLong(active),
         }
       : null,
+    finished: active ? null : recentResolved(db, client.id),
   };
 }
 

@@ -12,6 +12,12 @@ const OUTCOME_LABELS: Record<string, string> = {
   other: "Muu",
 };
 
+export const CLOSE_OPTIONS = [
+  { outcome: "helped_up", label: "Aitasin üles" },
+  { outcome: "called_112", label: "Helistasin 112" },
+  { outcome: "other", label: "Muu" },
+] as const;
+
 export function statusLabel(status: string): string {
   return STATUS_LABELS[status] ?? status;
 }
