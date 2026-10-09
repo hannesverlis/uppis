@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, ApiRequestError } from "./api";
 import { ArrivalClock, isArrivalLate } from "./arrival-clock";
 import { useSessionUserId } from "./app-shell";
 import { useWithActor } from "./use-with-actor";
+import { say, sayRepeated, setVoiceEnabled, setVoiceVolume, unlockAudio, voiceEnabled, voiceVolume, preload, type Clip } from "./voice";
+import { keepAwake, release } from "./wake-lock";
 
 type HelpView = {
   clientId: string;
@@ -26,6 +28,62 @@ type HelpView = {
   } | null;
   finished: { id: string; status: string; outcome: string | null; resolvedAt: string } | null;
 };
+
+const heardOnThisPage = new Set<string>();
+
+function etaClip(minutes: number | null): Clip | null {
+  if (minutes === 5 || minutes === 10 || minutes === 20 || minutes === 40) return `abi-teel-${minutes}`;
+  return null;
+}
+
+function speakOnce(local: Set<string>, key: string, play: () => void) {
+  if (local.has(key) || heardOnThisPage.has(key)) return;
+  local.add(key);
+  heardOnThisPage.add(key);
+  play();
+}
+
+function VoiceControl() {
+  const [on, setOn] = useState(true);
+  const [volume, setVolume] = useState(70);
+
+  useEffect(() => {
+    setOn(voiceEnabled());
+    setVolume(voiceVolume());
+  }, []);
+
+  return (
+    <div className="mt-3 flex items-center gap-3">
+      <button
+        className="inline-flex min-h-10 items-center rounded-xl border-2 border-[#1c1915] bg-white px-3 text-base font-bold"
+        type="button"
+        aria-pressed={on}
+        onClick={() => {
+          unlockAudio();
+          const next = !on;
+          setVoiceEnabled(next);
+          setOn(next);
+        }}
+      >
+        {on ? "🔊 Hääl sees" : "🔇 Hääl väljas"}
+      </button>
+      <input
+        className="h-8 min-w-0 flex-1"
+        type="range"
+        min={0}
+        max={100}
+        value={volume}
+        aria-label="Helitugevus"
+        onChange={(event) => {
+          unlockAudio();
+          const next = Number(event.target.value);
+          setVoiceVolume(next);
+          setVolume(next);
+        }}
+      />
+    </div>
+  );
+}
 
 const CLEAR_TRIAGE = {
   hitHead: false,
@@ -57,6 +115,8 @@ export function HelpPanel({ clientId }: { clientId: string }) {
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [showFarewell, setShowFarewell] = useState(false);
   const [now, setNow] = useState(() => Date.now());
+  const heard = useRef<Set<string>>(new Set());
+  const previous = useRef<{ id: string; status: string; late: boolean } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -106,6 +166,37 @@ export function HelpPanel({ clientId }: { clientId: string }) {
     return () => window.clearInterval(timer);
   }, [view?.active]);
 
+  useEffect(() => {
+    if (!view?.canCall) return;
+    const active = view.active;
+    if (!active) {
+      if (previous.current) release();
+      previous.current = null;
+      return;
+    }
+
+    const from = active.acceptedAt || active.createdAt;
+    const eta = active.helperEtaMin ?? 0;
+    const late = active.status === "helper_on_way" && eta > 0 && isArrivalLate(from, eta, now);
+    const prior = previous.current;
+    previous.current = { id: active.id, status: active.status, late };
+    if (!prior || prior.id !== active.id) return;
+
+    if (prior.status === "open" && active.status === "helper_on_way") {
+      const clip = etaClip(active.helperEtaMin);
+      if (clip) speakOnce(heard.current, `${active.id}:${clip}`, () => sayRepeated(clip));
+    }
+    if (prior.status === "helper_on_way" && active.status === "helper_arrived") {
+      speakOnce(heard.current, `${active.id}:helper_arrived`, () => sayRepeated("abistaja-kohal"));
+    }
+    if (active.status === "helper_on_way" && late && !prior.late) {
+      speakOnce(heard.current, `${active.id}:late`, () => say("abistaja-hilineb"));
+    }
+    if (active.status === "resolved" || active.status === "cancelled") release();
+  }, [now, view]);
+
+  useEffect(() => () => release(), []);
+
   async function cancelCall() {
     if (!view?.active) return;
     if (!confirmCancel) {
@@ -127,6 +218,9 @@ export function HelpPanel({ clientId }: { clientId: string }) {
   }
 
   async function callHelper() {
+    unlockAudio();
+    const clips = preload();
+    keepAwake();
     setSending(true);
     setError("");
     try {
@@ -136,7 +230,10 @@ export function HelpPanel({ clientId }: { clientId: string }) {
       });
       const data = await api<HelpView>(`/api/clients/${clientId}/help`);
       setView(data);
+      await clips;
+      say("kutse-saadetud");
     } catch (reason: unknown) {
+      release();
       setError(reason instanceof ApiRequestError ? reason.message : "Abipalvet ei saanud saata.");
     } finally {
       setSending(false);
@@ -162,6 +259,7 @@ export function HelpPanel({ clientId }: { clientId: string }) {
   return (
     <main>
       <h1 className="text-4xl font-extrabold">{view.clientName}</h1>
+      {view.canCall ? <VoiceControl /> : null}
       {!active && view.canCall && !showFarewell ? (
         <div className="mt-6 flex flex-col gap-3">
           <button

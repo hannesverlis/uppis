@@ -68,7 +68,7 @@ const PHONES: Phone[] = [
         src: `/kliendid/${ID.clientHelgi}?as=${ID.kalle}&tone=client`,
       },
       { label: "Anna Admin", src: `/admin?as=${ID.anna}&tone=admin` },
-      { label: "Eva Sots", src: `/admin?as=${ID.eva}&tone=admin` },
+      { label: "Eva KOV", src: `/admin?as=${ID.eva}&tone=admin` },
     ],
   },
 ];
@@ -215,6 +215,7 @@ export function DemoStage() {
                   key={`${generation}-${viewer.src}`}
                   title={`${phone.title}, ${viewer.label}`}
                   src={viewer.src}
+                  allow="autoplay; screen-wake-lock"
                   className="relative z-10 h-full w-full border-0 bg-[#f3efe6] lg:rounded-[var(--phone-inner)]"
                   style={{ ["--phone-inner" as string]: phone.inner, borderRadius: undefined }}
                 />
