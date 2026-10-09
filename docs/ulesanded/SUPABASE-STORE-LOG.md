@@ -14,6 +14,7 @@ Töötasin üksi, kinnitust ei oodanud. Haru on `supabase-store`. `main` harusse
 ## Commit'id
 - `a4beca1` Keep the demo database in Supabase when the server has a service role key.
 - `785d912` Cover the Supabase store with a fake REST client and await the async database in unit tests.
+- `f616130` Record how the demo database moved to Supabase and what to check in the morning.
 
 ## Testid
 - `npm test`: 9 faili, 136 testi, kõik läbisid (sh 6 Supabase'i võlts-REST testi).
@@ -38,7 +39,7 @@ Puhas voog (`curl.exe`, keha failist):
 `/api/health` vastab `{"ok":true,"supabase":false}`. See lipp vaatab `NEXT_PUBLIC_SUPABASE_URL` ja anon-võtit, mis on `.env.local` failis tühjad. Andmehoidla ise kasutab serveri muutujaid ja kirjutas Supabase'i (versioon kasvas). See ei ole viga.
 
 ## Vercel
-`vercel` käsku selles arvutis ei ole. Ma ei paigaldanud CLId ega loginud sisse. Eelvaate link tuleb vaadata Verceli veebiliidesest pärast push'i harule `supabase-store`. `main` harusse ei merge'itud.
+`vercel` käsku selles arvutis ei ole. Ma ei paigaldanud CLId ega loginud sisse. Haru `supabase-store` on push'itud. Eelvaate link tuleb vaadata Verceli veebiliidesest. `main` harusse ei merge'itud.
 
 ## Hommikune kontroll
 1. Ava haru `supabase-store` Verceli eelvaate link.
