@@ -1,0 +1,13 @@
+---
+description: Uppis projekti põhireeglid (kehtib alati)
+alwaysApply: true
+---
+
+- Järgi juurkaustas olevat `AGENTS.md` faili; detailid on kaustas `docs/`.
+- UI tekstid eesti keeles, kood ja kommentaarid inglise keeles.
+- Next.js App Router + TypeScript + Tailwind + Supabase. Ära lisa uusi teeke ilma põhjuseta.
+- Lehekülg: Kliendid · Täitjad · Admin, rollid failis `docs/ROLLID.md`; õigused ainult `lib/permissions.ts` kaudu.
+- Mobiil eelkõige; eaka vaates suured nupud ja kiri.
+- Triaaži kahtluse korral näita alati "Helista 112" (`tel:112`). Ära nimeta teenust kiirabiks.
+- Ainult demoandmed. Saladused ainult `.env.local` / Vercelis.
+- Iga muudatuse järel peab `npm run build` õnnestuma.
