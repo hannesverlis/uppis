@@ -1,4 +1,5 @@
 import { AdminReset } from "@/components/admin-reset";
+import { KovPanel } from "@/components/kov-panel";
 
 export default function AdminPage() {
   return (
@@ -7,6 +8,7 @@ export default function AdminPage() {
       <p className="mt-3 text-xl leading-relaxed">
         Siin hallatakse kasutajaid ja vaadatakse omavalitsuse juhtumeid.
       </p>
+      <KovPanel />
       <AdminReset />
     </main>
   );

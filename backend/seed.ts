@@ -54,7 +54,7 @@ export function createSeed(): Db {
       { id: ID.liis, name: "Liis Kask", phone: "5123 1005", organizationId: ID.org, municipalityId: null },
       { id: ID.peeter, name: "Peeter Org", phone: "5123 1006", organizationId: ID.org, municipalityId: null },
       { id: ID.anna, name: "Anna Admin", phone: "5123 1007", organizationId: null, municipalityId: null },
-      { id: ID.eva, name: "Eva Sots", phone: "5123 1008", organizationId: null, municipalityId: ID.tallinn },
+      { id: ID.eva, name: "Eva KOV", phone: "5123 1008", organizationId: null, municipalityId: ID.tallinn },
       { id: ID.aino, name: "Aino Levin", phone: "5123 1009", organizationId: null, municipalityId: null },
       { id: ID.lembit, name: "Lembit Kask", phone: "5123 1010", organizationId: null, municipalityId: null },
     ],

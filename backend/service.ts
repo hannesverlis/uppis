@@ -577,6 +577,13 @@ function kovClients(db: Db, user: SessionUser) {
   });
 }
 
+function municipalityClients(db: Db, user: SessionUser) {
+  return db.clients.filter((client) => {
+    if (user.roles.includes("admin_system")) return true;
+    return !!user.municipalityId && client.municipalityId === user.municipalityId;
+  });
+}
+
 export function getOverview(user: SessionUser) {
   const db = readDb();
   const visible = kovClients(db, user).map((item) => item.id);
@@ -677,14 +684,14 @@ export function listAdminClients(user: SessionUser) {
   }));
 }
 
-function repeatFallers(db: Db, user: SessionUser) {
+function repeatFallers(db: Db, user: SessionUser, clients = kovClients(db, user)) {
   const since = Date.now() - 30 * 24 * 60 * 60 * 1000;
   const counts = new Map<string, number>();
   for (const incident of db.incidents) {
     if (new Date(incident.createdAt).getTime() < since) continue;
     counts.set(incident.clientId, (counts.get(incident.clientId) ?? 0) + 1);
   }
-  return kovClients(db, user)
+  return clients
     .filter((client) => (counts.get(client.id) ?? 0) >= 2)
     .map((client) => ({
       clientId: client.id,
@@ -692,6 +699,7 @@ function repeatFallers(db: Db, user: SessionUser) {
       address: client.address,
       municipalityName: municipalityName(db, client.municipalityId),
       falls30d: counts.get(client.id) ?? 0,
+      kovConsent: client.kovConsent,
     }));
 }
 
@@ -700,12 +708,14 @@ export function getKov(user: SessionUser) {
     throw new ApiError("Puudub õigus", 403, "FORBIDDEN");
   }
   const db = readDb();
-  const allowed = new Set(kovClients(db, user).map((item) => item.id));
+  const clients = municipalityClients(db, user);
+  const allowed = new Set(clients.map((item) => item.id));
+  const consent = new Map(clients.map((item) => [item.id, item.kovConsent]));
   const incidents = db.incidents
     .filter((item) => allowed.has(item.clientId))
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .map((item) => incidentSummary(db, item));
-  return { repeatFallers: repeatFallers(db, user), incidents };
+    .map((item) => ({ ...incidentSummary(db, item), kovConsent: consent.get(item.clientId) === true }));
+  return { repeatFallers: repeatFallers(db, user, clients), incidents };
 }
 
 export function markKov(user: SessionUser, incidentId: string, body: Record<string, unknown>) {

@@ -7,6 +7,12 @@ const STATUS_LABELS: Record<string, string> = {
   cancelled: "Tühistatud",
 };
 
+const KOV_STATUS_LABELS: Record<string, string> = {
+  new: "Uus",
+  in_progress: "Võetud menetlusse",
+  done: "Menetletud",
+};
+
 const OUTCOME_LABELS: Record<string, string> = {
   helped_up: "Aitas püsti",
   called_112: "Kutsus 112",
@@ -21,6 +27,10 @@ export const CLOSE_OPTIONS = [
 
 export function statusLabel(status: string): string {
   return STATUS_LABELS[status] ?? status;
+}
+
+export function kovStatusLabel(status: string): string {
+  return KOV_STATUS_LABELS[status] ?? status;
 }
 
 export function outcomeLabel(outcome: string | null): string {
