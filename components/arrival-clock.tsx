@@ -27,7 +27,7 @@ export function ArrivalClock({ from, minutes }: { from: string; minutes: number 
   const late = delta < 0;
 
   return (
-    <p className={`text-4xl font-extrabold tabular-nums ${late ? "text-[#9f1d1d]" : ""}`} aria-live="polite">
+    <p className={`text-4xl font-extrabold tabular-nums ${late ? "text-danger" : ""}`} aria-live="polite">
       {late ? `Hilineb +${clock(-delta)}` : clock(delta)}
     </p>
   );

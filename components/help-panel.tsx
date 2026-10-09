@@ -55,7 +55,7 @@ function VoiceControl() {
   return (
     <div className="mt-3 flex items-center gap-3">
       <button
-        className="inline-flex min-h-10 items-center rounded-xl border-2 border-[#1c1915] bg-white px-3 text-base font-bold"
+        className="inline-flex min-h-10 items-center rounded-xl border-2 border-ink bg-white px-3 text-base font-bold"
         type="button"
         aria-pressed={on}
         onClick={() => {
@@ -96,7 +96,7 @@ const CLEAR_TRIAGE = {
 function Call112({ tall }: { tall?: boolean }) {
   return (
     <a
-      className={`inline-flex w-full items-center justify-center rounded-2xl bg-[#9f1d1d] px-5 text-xl font-bold text-white ${
+      className={`inline-flex w-full items-center justify-center rounded-2xl bg-danger px-5 text-xl font-bold text-white ${
         tall ? "min-h-24 text-2xl" : "min-h-16"
       }`}
       href="tel:112"
@@ -241,7 +241,7 @@ export function HelpPanel({ clientId }: { clientId: string }) {
   }
 
   if (error && !view) {
-    return <p className="text-xl font-semibold text-[#9f1d1d]">{error}</p>;
+    return <p className="text-xl font-semibold text-danger">{error}</p>;
   }
   if (!view) {
     return <p className="text-xl">Laen…</p>;
@@ -263,7 +263,7 @@ export function HelpPanel({ clientId }: { clientId: string }) {
       {!active && view.canCall && !showFarewell ? (
         <div className="mt-6 flex flex-col gap-3">
           <button
-            className="min-h-24 rounded-2xl bg-[#0c6b52] px-5 text-2xl font-bold text-white disabled:opacity-60"
+            className="min-h-24 rounded-2xl bg-brand px-5 text-2xl font-bold text-white disabled:opacity-60"
             type="button"
             disabled={sending}
             onClick={callHelper}
@@ -280,12 +280,12 @@ export function HelpPanel({ clientId }: { clientId: string }) {
             {active.waitingLong ? "Keegi ei ole veel kutset vastu võtnud." : "Kutse on saadetud. Ootame abistajat."}
           </p>
           {active.waitingLong ? (
-            <p className="text-3xl font-extrabold text-[#9f1d1d]">Helista 112</p>
+            <p className="text-3xl font-extrabold text-danger">Helista 112</p>
           ) : null}
           <Call112 tall />
           {view.canCancel ? (
             <button
-              className="min-h-16 rounded-2xl border-2 border-[#1c1915] bg-white px-5 text-xl font-bold disabled:opacity-60"
+              className="min-h-16 rounded-2xl border-2 border-ink bg-white px-5 text-xl font-bold disabled:opacity-60"
               type="button"
               disabled={sending}
               onClick={() => void cancelCall()}
@@ -302,14 +302,14 @@ export function HelpPanel({ clientId }: { clientId: string }) {
           <p className="text-base font-semibold">Saabumiseni</p>
           <ArrivalClock from={active.acceptedAt || active.createdAt} minutes={active.helperEtaMin ?? 0} />
           {late ? (
-            <p className="text-xl font-extrabold leading-snug text-[#9f1d1d]">
+            <p className="text-xl font-extrabold leading-snug text-danger">
               Abistaja hilineb. Kui vajad kiiresti abi, helista 112.
             </p>
           ) : null}
           <Call112 />
           {view.canCancel ? (
             <button
-              className="min-h-16 rounded-2xl border-2 border-[#1c1915] bg-white px-5 text-xl font-bold disabled:opacity-60"
+              className="min-h-16 rounded-2xl border-2 border-ink bg-white px-5 text-xl font-bold disabled:opacity-60"
               type="button"
               disabled={sending}
               onClick={() => void cancelCall()}
@@ -342,7 +342,7 @@ export function HelpPanel({ clientId }: { clientId: string }) {
         <p className="mt-4 text-xl">Sina saad seda klienti vaadata. Abi kutsub abisaaja.</p>
       ) : null}
 
-      {error ? <p className="mt-4 text-xl font-semibold text-[#9f1d1d]">{error}</p> : null}
+      {error ? <p className="mt-4 text-xl font-semibold text-danger">{error}</p> : null}
 
       {!view.canCall ? (
         <Link className="mt-6 inline-block text-xl font-bold underline" href={withActor(`/kliendid/${clientId}`)}>

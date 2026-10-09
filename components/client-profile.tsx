@@ -199,7 +199,7 @@ export function ClientProfile({ clientId }: { clientId: string }) {
   }
 
   if (error && !profile) {
-    return <p className="text-xl font-semibold text-[#9f1d1d]">{error}</p>;
+    return <p className="text-xl font-semibold text-danger">{error}</p>;
   }
   if (!profile) {
     return <p className="text-xl">Laen profiili…</p>;
@@ -228,7 +228,7 @@ export function ClientProfile({ clientId }: { clientId: string }) {
         <h2 className="text-xl font-extrabold">Aadress</h2>
         {profile.canEdit ? (
           <input
-            className="mt-2 min-h-14 w-full rounded-xl border-2 border-[#1c1915] px-3 text-xl"
+            className="mt-2 min-h-14 w-full rounded-xl border-2 border-ink px-3 text-xl"
             value={address}
             onChange={(event) => setAddress(event.target.value)}
           />
@@ -240,7 +240,7 @@ export function ClientProfile({ clientId }: { clientId: string }) {
             <h2 className="mt-4 text-xl font-extrabold">Ligipääs</h2>
             {profile.canEdit ? (
               <textarea
-                className="mt-2 min-h-24 w-full rounded-xl border-2 border-[#1c1915] px-3 py-2 text-xl"
+                className="mt-2 min-h-24 w-full rounded-xl border-2 border-ink px-3 py-2 text-xl"
                 value={accessNotes}
                 onChange={(event) => setAccessNotes(event.target.value)}
               />
@@ -251,7 +251,7 @@ export function ClientProfile({ clientId }: { clientId: string }) {
         ) : null}
         {profile.canEdit ? (
           <button
-            className="mt-4 min-h-16 w-full rounded-2xl bg-[#0c6b52] px-5 text-xl font-bold text-white disabled:opacity-60"
+            className="mt-4 min-h-16 w-full rounded-2xl bg-brand px-5 text-xl font-bold text-white disabled:opacity-60"
             type="button"
             disabled={saving}
             onClick={() => save({ address, accessNotes })}
@@ -268,7 +268,7 @@ export function ClientProfile({ clientId }: { clientId: string }) {
         </p>
         {profile.canSetConsent ? (
           <button
-            className="mt-4 min-h-16 w-full rounded-2xl bg-[#1c1915] px-5 text-xl font-bold text-white disabled:opacity-60"
+            className="mt-4 min-h-16 w-full rounded-2xl bg-stage px-5 text-xl font-bold text-white disabled:opacity-60"
             type="button"
             disabled={saving}
             onClick={() => save({ kovConsent: !profile.kovConsent })}
@@ -315,7 +315,7 @@ export function ClientProfile({ clientId }: { clientId: string }) {
         {profile.canManageHelpers ? (
           <div className="mt-3 flex flex-col gap-2">
             <select
-              className="min-h-16 rounded-2xl border-2 border-[#1c1915] bg-white px-3 text-xl"
+              className="min-h-16 rounded-2xl border-2 border-ink bg-white px-3 text-xl"
               value={helperPick}
               onChange={(event) => setHelperPick(event.target.value)}
             >
@@ -336,7 +336,7 @@ export function ClientProfile({ clientId }: { clientId: string }) {
               </optgroup>
             </select>
             <button
-              className="min-h-16 rounded-2xl bg-[#0c6b52] px-5 text-xl font-bold text-white disabled:opacity-60"
+              className="min-h-16 rounded-2xl bg-brand px-5 text-xl font-bold text-white disabled:opacity-60"
               type="button"
               disabled={saving || !helperPick}
               onClick={addHelper}
@@ -364,7 +364,7 @@ export function ClientProfile({ clientId }: { clientId: string }) {
         </ul>
       </section>
 
-      {error ? <p className="text-xl font-semibold text-[#9f1d1d]">{error}</p> : null}
+      {error ? <p className="text-xl font-semibold text-danger">{error}</p> : null}
     </main>
   );
 }

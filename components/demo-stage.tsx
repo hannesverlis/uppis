@@ -23,8 +23,8 @@ type Phone = {
 const PHONES: Phone[] = [
   {
     title: "Abisaaja",
-    bezel: "#143d32",
-    label: "#b7e4cf",
+    bezel: "var(--color-stage)",
+    label: "var(--color-brand-light)",
     radius: "2.6rem",
     inner: "1.9rem",
     width: "22rem",
@@ -37,8 +37,8 @@ const PHONES: Phone[] = [
   },
   {
     title: "Täitja",
-    bezel: "#16324f",
-    label: "#c5ddf5",
+    bezel: "var(--color-ink)",
+    label: "var(--color-brand-light)",
     radius: "1.7rem",
     inner: "1.15rem",
     width: "23rem",
@@ -52,8 +52,8 @@ const PHONES: Phone[] = [
   },
   {
     title: "Lähedane",
-    bezel: "#4a3424",
-    label: "#f0d7bf",
+    bezel: "var(--color-stage)",
+    label: "var(--color-brand-light)",
     radius: "1.15rem",
     inner: "0.7rem",
     width: "24rem",
@@ -133,7 +133,7 @@ export function DemoStage() {
   }
 
   return (
-    <main className="flex min-h-dvh flex-col bg-[#1c1915] px-3 py-3 text-white max-lg:pb-16 lg:overflow-hidden lg:px-4 xl:px-6">
+    <main className="flex min-h-dvh flex-col bg-stage px-3 py-3 text-white max-lg:pb-16 lg:overflow-hidden lg:px-4 xl:px-6">
       <header className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold">Uppis</h1>
@@ -142,7 +142,7 @@ export function DemoStage() {
         <div className="flex flex-wrap items-center justify-end gap-2">
           {askPin && !PUBLIC_PIN ? (
             <input
-              className="min-h-10 w-24 rounded-lg border border-white/40 bg-[#1c1915] px-2 text-sm"
+              className="min-h-10 w-24 rounded-lg border border-white/40 bg-stage px-2 text-sm"
               type="password"
               inputMode="numeric"
               autoComplete="off"
@@ -155,7 +155,7 @@ export function DemoStage() {
             />
           ) : null}
           <button
-            className="min-h-10 rounded-xl bg-white px-3 text-sm font-bold text-[#1c1915] disabled:opacity-60"
+            className="min-h-10 rounded-xl bg-white px-3 text-sm font-bold text-ink disabled:opacity-60"
             type="button"
             disabled={sending}
             onClick={() => void resetDemo()}
@@ -167,7 +167,7 @@ export function DemoStage() {
           </Link>
         </div>
       </header>
-      {error ? <p className="mt-2 text-sm font-semibold text-[#ffb4b4]">{error}</p> : null}
+      {error ? <p className="mt-2 text-sm font-semibold text-danger-soft">{error}</p> : null}
       <div className="mt-2 grid min-h-0 flex-1 grid-cols-1 items-start lg:grid-cols-3 lg:gap-3 xl:gap-6">
         {PHONES.map((phone, index) => {
           const viewer = phone.viewers[picked[index]] ?? phone.viewers[0];
@@ -183,7 +183,7 @@ export function DemoStage() {
                 Vaata kui…
                 <select
                   id={`viewer-${index}`}
-                  className="mt-1 block max-w-full rounded-lg border border-white/30 bg-[#1c1915] px-2 py-1 text-sm text-white"
+                  className="mt-1 block max-w-full rounded-lg border border-white/30 bg-stage px-2 py-1 text-sm text-white"
                   value={viewer.src}
                   onChange={(event) => {
                     const next = phone.viewers.findIndex((item) => item.src === event.target.value);
@@ -216,7 +216,7 @@ export function DemoStage() {
                   title={`${phone.title}, ${viewer.label}`}
                   src={viewer.src}
                   allow="autoplay; screen-wake-lock"
-                  className="relative z-10 h-full w-full border-0 bg-[#f3efe6] lg:rounded-[var(--phone-inner)]"
+                  className="relative z-10 h-full w-full border-0 bg-bg lg:rounded-[var(--phone-inner)]"
                   style={{ ["--phone-inner" as string]: phone.inner, borderRadius: undefined }}
                 />
                 <div className="absolute bottom-2 left-1/2 z-10 hidden h-1.5 w-16 -translate-x-1/2 rounded-full bg-white/35 lg:block" />
@@ -229,7 +229,7 @@ export function DemoStage() {
         {PHONES.map((phone, index) => (
           <button
             key={phone.title}
-            className={`text-base font-bold ${mobileTab === index ? "bg-[#0c6b52] text-white" : "bg-[#2a2622] text-white/80"}`}
+            className={`text-base font-bold ${mobileTab === index ? "bg-brand text-white" : "bg-stage text-white/80"}`}
             type="button"
             aria-current={mobileTab === index ? "page" : undefined}
             onClick={() => setMobileTab(index)}

@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import { headers } from "next/headers";
 import { AppShell, type ShellTone } from "@/components/app-shell";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   title: "Uppis",
@@ -18,8 +25,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const path = requestHeaders.get("x-uppis-path");
   const stage = path === "/" || path === "/demo";
   return (
-    <html lang="et">
-      <body>
+    <html lang="et" className={inter.variable}>
+      <body className={inter.className}>
         {stage ? (
           children
         ) : (

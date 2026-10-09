@@ -61,7 +61,7 @@ export function AdminReset() {
     <section className="mt-6 rounded-2xl bg-white px-5 py-4">
       <h2 className="text-2xl font-extrabold">Demo lähtestamine</h2>
       <button
-        className="mt-4 min-h-16 w-full rounded-2xl bg-[#6b3a1f] px-5 text-xl font-bold text-white disabled:opacity-60"
+        className="mt-4 min-h-16 w-full rounded-2xl bg-danger px-5 text-xl font-bold text-white disabled:opacity-60"
         type="button"
         disabled={sending}
         onClick={resetDemo}
@@ -69,7 +69,7 @@ export function AdminReset() {
         {confirming ? "Kinnita lähtestamine" : "Lähtesta demo"}
       </button>
       {done ? <p className="mt-3 text-xl font-semibold">{done}</p> : null}
-      {error ? <p className="mt-3 text-xl font-semibold text-[#9f1d1d]">{error}</p> : null}
+      {error ? <p className="mt-3 text-xl font-semibold text-danger">{error}</p> : null}
     </section>
   );
 }

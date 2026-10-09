@@ -49,7 +49,7 @@ function RequestClock({ from, late }: { from: string; late?: boolean }) {
   }, []);
 
   return (
-    <p className={`text-4xl font-extrabold tabular-nums ${late ? "text-[#9f1d1d]" : ""}`} aria-live="polite">
+    <p className={`text-4xl font-extrabold tabular-nums ${late ? "text-danger" : ""}`} aria-live="polite">
       {elapsedText(from, now)}
     </p>
   );
@@ -171,7 +171,7 @@ export function HelperQueue() {
   return (
     <main>
       <h1 className="text-3xl font-extrabold">Abipalved</h1>
-      {error ? <p className="mt-4 text-xl font-semibold text-[#9f1d1d]">{error}</p> : null}
+      {error ? <p className="mt-4 text-xl font-semibold text-danger">{error}</p> : null}
       {!error && !items ? <p className="mt-4 text-xl">Laen abipalveid…</p> : null}
       {items && items.length === 0 && !error ? (
         <p className="mt-4 text-xl">Aktiivseid abipalveid pole.</p>
@@ -185,10 +185,10 @@ export function HelperQueue() {
           ) : (
           <article
             key={item.id}
-            className={`rounded-2xl bg-white px-5 py-4 ${item.waitingTooLong ? "border-4 border-[#9f1d1d]" : ""}`}
+            className={`rounded-2xl bg-white px-5 py-4 ${item.waitingTooLong ? "border-4 border-danger" : ""}`}
           >
             {item.waitingTooLong ? (
-              <p className="mb-2 text-xl font-extrabold text-[#9f1d1d]">Ootab üle 10 min – keegi pole vastu võtnud</p>
+              <p className="mb-2 text-xl font-extrabold text-danger">Ootab üle 10 min – keegi pole vastu võtnud</p>
             ) : null}
             <p className="text-base font-semibold">Abipalvest</p>
             <RequestClock from={item.createdAt} late={item.waitingTooLong} />
@@ -199,7 +199,7 @@ export function HelperQueue() {
             {item.accessNotes ? <p className="mt-2 text-xl">{item.accessNotes}</p> : null}
             <p className="mt-2 text-base">{statusLabel(item.status)}</p>
             {item.status === "helper_on_way" && item.helperName && !item.canAccept && !item.canMarkArrived ? (
-              <p className="mt-2 text-xl font-semibold text-[#5c564c]">
+              <p className="mt-2 text-xl font-semibold text-ink-muted">
                 Kutse võttis juba vastu {item.helperName}. {item.helperName} on teel, ETA {item.helperEtaMin ?? ""} min.
               </p>
             ) : null}
@@ -214,7 +214,7 @@ export function HelperQueue() {
             ) : null}
             {item.canMarkArrived ? (
               <button
-                className="mt-4 min-h-16 w-full rounded-2xl bg-[#0c6b52] px-3 text-xl font-bold text-white disabled:opacity-60"
+                className="mt-4 min-h-16 w-full rounded-2xl bg-brand px-3 text-xl font-bold text-white disabled:opacity-60"
                 type="button"
                 disabled={arrivingId === item.id}
                 onClick={() => void markHere(item.id)}
@@ -228,7 +228,7 @@ export function HelperQueue() {
                   {CLOSE_OPTIONS.map((option) => (
                     <button
                       key={option.outcome}
-                      className="min-h-16 rounded-2xl bg-[#16324f] px-3 text-xl font-bold text-white disabled:opacity-60"
+                      className="min-h-16 rounded-2xl bg-brand px-3 text-xl font-bold text-white disabled:opacity-60"
                       type="button"
                       disabled={closing}
                       onClick={() => {
@@ -249,13 +249,13 @@ export function HelperQueue() {
                       </label>
                       <textarea
                         id={`note-${item.id}`}
-                        className="min-h-24 rounded-2xl border-2 border-[#1c1915] px-3 py-2 text-xl"
+                        className="min-h-24 rounded-2xl border-2 border-ink px-3 py-2 text-xl"
                         maxLength={500}
                         value={note}
                         onChange={(event) => setNote(event.target.value)}
                       />
                       <button
-                        className="min-h-16 rounded-2xl bg-[#16324f] px-3 text-xl font-bold text-white disabled:opacity-60"
+                        className="min-h-16 rounded-2xl bg-brand px-3 text-xl font-bold text-white disabled:opacity-60"
                         type="button"
                         disabled={closing}
                         onClick={() => void closeIncident(item.id, "other")}
@@ -267,7 +267,7 @@ export function HelperQueue() {
                 </div>
               ) : (
                 <button
-                  className="mt-4 min-h-16 w-full rounded-2xl bg-[#16324f] px-3 text-xl font-bold text-white"
+                  className="mt-4 min-h-16 w-full rounded-2xl bg-brand px-3 text-xl font-bold text-white"
                   type="button"
                   onClick={() => {
                     setClosingId(item.id);
@@ -284,7 +284,7 @@ export function HelperQueue() {
                 {ETA_MINUTES.map((minutes) => (
                   <button
                     key={minutes}
-                    className="min-h-16 rounded-2xl bg-[#0c6b52] px-3 text-xl font-bold text-white disabled:opacity-60"
+                    className="min-h-16 rounded-2xl bg-brand px-3 text-xl font-bold text-white disabled:opacity-60"
                     type="button"
                     disabled={acceptingId === item.id}
                     onClick={() => accept(item.id, minutes)}

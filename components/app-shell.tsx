@@ -32,10 +32,10 @@ const NAV = [
 
 export type ShellTone = "client" | "helper" | "admin";
 
-const TONE_STYLE: Record<ShellTone, { background: string; accent: string }> = {
-  client: { background: "#f4efe4", accent: "#0c6b52" },
-  helper: { background: "#e7eef6", accent: "#16324f" },
-  admin: { background: "#f6efe6", accent: "#6b3a1f" },
+const TONE_LABEL: Record<ShellTone, string> = {
+  client: "Klient",
+  helper: "Täitja",
+  admin: "Admin",
 };
 
 export function AppShell({
@@ -116,18 +116,11 @@ export function AppShell({
       : "Kasutajat pole valitud";
 
   const embedded = Boolean(actor);
-  const toneStyle = tone ? TONE_STYLE[tone] : null;
 
   return (
-    <div
-      className="mx-auto flex min-h-dvh max-w-lg flex-col px-4"
-      style={toneStyle ? { background: toneStyle.background } : undefined}
-    >
+    <div className="mx-auto flex min-h-dvh max-w-lg flex-col bg-bg px-4 text-ink">
       <header className="py-4">
-        <p
-          className="text-sm font-semibold uppercase tracking-wide text-[#0c6b52]"
-          style={toneStyle ? { color: toneStyle.accent } : undefined}
-        >
+        <p className="text-sm font-semibold uppercase tracking-wide text-brand">
           {embedded ? (
             "Uppis"
           ) : (
@@ -136,6 +129,11 @@ export function AppShell({
             </Link>
           )}
         </p>
+        {tone ? (
+          <p className="mt-1 inline-flex rounded-pill bg-surface px-2 py-0.5 text-xs font-semibold text-ink-muted">
+            {TONE_LABEL[tone]}
+          </p>
+        ) : null}
         {embedded ? (
           <p className="mt-2 text-2xl font-extrabold">{me ? me.name : "…"}</p>
         ) : null}
@@ -149,7 +147,7 @@ export function AppShell({
                 href={withActor(item.href, actor, tone)}
                 aria-current={active ? "page" : undefined}
                 className={`inline-flex min-h-14 items-center justify-center rounded-2xl px-2 text-center text-lg font-bold ${
-                  active ? "bg-[#0c6b52] text-white" : "bg-white text-[#1c1915]"
+                  active ? "bg-brand text-white" : "bg-surface text-ink"
                 }`}
               >
                 {item.label}
@@ -165,7 +163,7 @@ export function AppShell({
         </label>
         <select
           id="demo-user"
-          className="mt-2 min-h-16 w-full rounded-2xl border-2 border-[#1c1915] bg-white px-3 text-xl"
+          className="mt-2 min-h-16 w-full rounded-2xl border-2 border-ink bg-bg px-3 text-xl"
           value={menuValue}
           disabled={!ready || saving}
           onChange={(event) => onUserChange(event.target.value)}
@@ -180,15 +178,15 @@ export function AppShell({
         <p className="mt-2 text-base" aria-live="polite">
           {me ? `Oled: ${me.name} · ${roleList(me.roles)}` : "Kedagi pole valitud."}
         </p>
-        {error ? <p className="mt-2 text-base font-semibold text-[#9f1d1d]">{error}</p> : null}
+        {error ? <p className="mt-2 text-base font-semibold text-danger">{error}</p> : null}
         </>
         )}
       </header>
       <SessionUserContext.Provider value={actor ?? me?.id ?? null}>
         <div className="flex-1 pb-8">{children}</div>
       </SessionUserContext.Provider>
-      <footer className="border-t border-[#1c1915]/20 py-4 text-base">
-        Demo. Hädaohu korral helista <a className="font-bold text-[#9f1d1d] underline" href="tel:112">112</a>.
+      <footer className="border-t border-border py-4 text-base">
+        Demo. Hädaohu korral helista <a className="font-bold text-danger underline" href="tel:112">112</a>.
       </footer>
     </div>
   );

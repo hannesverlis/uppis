@@ -145,7 +145,7 @@ export function KovPanel() {
             </p>
             {incident.kovConsent && incident.kovStatus === "new" ? (
               <button
-                className="mt-4 min-h-16 w-full rounded-2xl bg-[#6b3a1f] px-5 text-xl font-bold text-white disabled:opacity-60"
+                className="mt-4 min-h-16 w-full rounded-2xl bg-danger px-5 text-xl font-bold text-white disabled:opacity-60"
                 type="button"
                 disabled={busyId === incident.id}
                 onClick={() => takeCase(incident.id)}
@@ -156,7 +156,7 @@ export function KovPanel() {
           </li>
         ))}
       </ul>
-      {error ? <p className="mt-3 text-xl font-semibold text-[#9f1d1d]">{error}</p> : null}
+      {error ? <p className="mt-3 text-xl font-semibold text-danger">{error}</p> : null}
     </section>
   );
 }

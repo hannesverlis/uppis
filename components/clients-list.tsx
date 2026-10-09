@@ -52,7 +52,7 @@ export function ClientsList() {
   }, [clients, onlyElder, router, withActor]);
 
   if (error) {
-    return <p className="text-xl font-semibold text-[#9f1d1d]">{error}</p>;
+    return <p className="text-xl font-semibold text-danger">{error}</p>;
   }
   if (!clients || onlyElder) {
     return <p className="text-xl">Laen kliente…</p>;
