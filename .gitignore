@@ -8,3 +8,7 @@ out
 .env.*.local
 data/*.json
 data/*.tmp
+data/e2e-db.json
+.next-e2e/
+test-results/
+playwright-report/
